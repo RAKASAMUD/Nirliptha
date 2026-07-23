@@ -1,0 +1,38 @@
+{
+  "name": "nirlipta",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "hardhat test"
+  },
+  "keywords": ["nox", "iexec", "confidential", "auction", "rwa", "erc7984", "tee"],
+  "author": "",
+  "license": "MIT",
+  "description": "Confidential sealed-bid uniform-price auction for RWA primary issuance on Nox Protocol",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RAKASAMUD/nirliptha",
+    "directory": "contracts"
+  },
+  "devDependencies": {
+    "@iexec-nox/nox-hardhat-plugin": "^0.1.0",
+    "@nomicfoundation/hardhat-ethers": "^4.0.15",
+    "@nomicfoundation/hardhat-mocha": "^3.0.21",
+    "@nomicfoundation/hardhat-toolbox": "^7.0.0",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.1.1",
+    "ethers": "^6.17.0",
+    "hardhat": "^3.11.0",
+    "mocha": "^11.7.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@iexec-nox/handle": "^0.1.0-beta.13",
+    "@iexec-nox/nox-confidential-contracts": "^0.2.2",
+    "@iexec-nox/nox-protocol-contracts": "^0.2.4",
+    "dotenv": "^17.4.2"
+  },
+  "type": "module"
+}

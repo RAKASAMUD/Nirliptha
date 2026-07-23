@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.hex
+*.key
+artifacts/
+cache/
+typechain-types/

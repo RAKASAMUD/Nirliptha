@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "hardhat": {
+      "source": "nomicfoundation/hardhat-skills",
+      "sourceType": "github",
+      "skillPath": "skills/hardhat/SKILL.md",
+      "computedHash": "15e8a4fdc57d785a4af2b475d14988c9567eb069bb2ebaac6fd597422972b4a7"
+    },
+    "setup-solidity-contracts": {
+      "source": "openzeppelin/openzeppelin-skills",
+      "sourceType": "github",
+      "skillPath": "skills/setup-solidity-contracts/SKILL.md",
+      "computedHash": "562f4ececbc91ab8eed22b2bcae6b3e0a573916c0b8a2e44be96245847aab17c"
+    },
+    "solidity": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "solidity/SKILL.md",
+      "computedHash": "be6f631ed5f9322f62cc664323f5537676e71a1f791dd3db7fec624fb56e144e"
+    },
+    "solidity-security": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/blockchain-web3/skills/solidity-security/SKILL.md",
+      "computedHash": "8313ac3799079c7eee4f8bfdb2747514a09590b370f11ef1db4739a11d2e4ab9"
+    }
+  }
+}
