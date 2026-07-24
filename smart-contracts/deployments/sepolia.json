@@ -6,7 +6,7 @@
   "contracts": {
     "cUSD": "0x7309886ee42Aa29a796A479A01Eef07a61c8F6Fd",
     "cAsset": "0x43d81618774059F0172b7B32c972271a6440003D",
-    "auctionFactory": "0x39536Ea5789538D7F76999e8BDE5679526F815Df",
+    "auctionFactory": "0x949Ca7E2552f3ff9F5304Ec0C9E5A959d8583cc9",
     "demoAuction": "0x3c35ea01f9c197d01Ad6345CA41EB4bFdac84a86"
   }
 }
