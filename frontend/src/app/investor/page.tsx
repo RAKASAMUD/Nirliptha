@@ -1,16 +1,18 @@
-import { AuctionInfoCard } from "@/components/AuctionInfoCard";
+import { LiveAuctionInfoCard } from "@/components/LiveAuctionInfoCard";
 import { BidForm } from "@/components/BidForm";
 import { Card } from "@/components/Card";
 import { DataRow } from "@/components/DataRow";
 import { Button } from "@/components/Button";
+import { CONTRACTS } from "@/lib/config";
 import { DEMO_AUCTION, DEMO_BIDDERS } from "@/lib/demo-data";
 
-// Composition only, split layout per PLAN-FE-frontend.md Task 5. Default
-// demo scenario: connected, state Settled, viewing bidder #3 (0x3AcE...) —
-// the "partial fill" investor from the real Sepolia run, matching PLAN-FE's
-// own worked example (40,000 @ 1.05 -> 20,000 cASSET, 21,000 cUSD refund).
-// The Open-state right panel (BidForm) stays wired below for when the demo
-// auction is actually still open — not the default render path today.
+// Composition only, split layout per PLAN-FE-frontend.md Task 5. AuctionInfoCard
+// (left column) now reads LIVE Sepolia data via useAuction() (Task 3). The
+// right-column result breakdown still uses demo data — real per-investor
+// bid/allocation reads (bidderIndex, allocations mapping, decrypt calls)
+// are Task 5's useBid hook, not built yet. Default demo scenario: viewing
+// bidder #3 (0x3AcE...), the "partial fill" investor from the real Sepolia
+// run (40,000 @ 1.05 -> 20,000 cASSET, 21,000 cUSD refund).
 export default function InvestorPage() {
   const demo = DEMO_BIDDERS[2]; // partial-fill investor
   const owed = demo.allocation * Number(DEMO_AUCTION.clearingPrice) / 10 ** DEMO_AUCTION.decimals;
@@ -21,7 +23,7 @@ export default function InvestorPage() {
     <main className="mx-auto max-w-(--container-max-width) px-margin-mobile py-section-gap md:px-margin-desktop">
       <div className="grid grid-cols-1 items-start gap-gutter md:grid-cols-[40%_60%]">
         <aside className="md:sticky md:top-32">
-          <AuctionInfoCard auction={DEMO_AUCTION} layout="investor" />
+          <LiveAuctionInfoCard address={CONTRACTS.demoAuction as `0x${string}`} layout="investor" />
         </aside>
 
         {DEMO_AUCTION.status === 3 ? (
