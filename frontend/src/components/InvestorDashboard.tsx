@@ -16,16 +16,19 @@ import { Button } from "./Button";
 import { DataRow } from "./DataRow";
 import { ConnectButton } from "./ConnectButton";
 
-// The orchestrating client component for /investor. Consolidated into one
-// file for the same reason as IssuerDashboard: the panel that fills the
-// right column depends on connection state, bid state, AND auction status
-// all at once (PLAN-FE-frontend.md Task 5's "panel kanan per skenario"
-// table), which is easier to reason about as one state machine than split
-// across several files that would just pass the same handful of values
-// back and forth.
-export function InvestorDashboard() {
+type Props = {
+  auctionAddress: `0x${string}`;
+};
+
+// The orchestrating client component for a single /investor/[address] page.
+// Consolidated into one file for the same reason as IssuerDashboard: the
+// panel that fills the right column depends on connection state, bid state,
+// AND auction status all at once (PLAN-FE-frontend.md Task 5's "panel kanan
+// per skenario" table), which is easier to reason about as one state
+// machine than split across several files that would just pass the same
+// handful of values back and forth.
+export function InvestorDashboard({ auctionAddress }: Props) {
   const { address, isConnected } = useAccount();
-  const auctionAddress = CONTRACTS.demoAuction as `0x${string}`;
   const auction = useAuction(auctionAddress);
   const bid = useBid(auctionAddress);
   const { decrypt, isDecrypting, error: decryptError } = useDecrypt();

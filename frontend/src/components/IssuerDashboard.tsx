@@ -3,29 +3,29 @@
 import { useEffect, useState } from "react";
 import { useAccount, useWriteContract, usePublicClient, useWalletClient } from "wagmi";
 import { AUCTION_ABI } from "@/lib/abis";
-import { CONTRACTS, ISSUER_ADDRESS } from "@/lib/config";
 import { useAuction } from "@/hooks/useAuction";
 import { publicDecryptHandle } from "@/lib/nox";
 import { StatusBar } from "./StatusBar";
 import { AuctionInfoCard } from "./AuctionInfoCard";
 import { LiveAllocationTable } from "./LiveAllocationTable";
-import { CreateAuctionForm } from "./CreateAuctionForm";
 import { Button } from "./Button";
 import { ConnectButton } from "./ConnectButton";
 import { Card } from "./Card";
 
-// The orchestrating client component for /issuer. Consolidated into one
-// file rather than split across many micro-hooks — the 6+ write flows
-// (create, escrow, finalize, reveal, settle, withdraw, grant, rotate) all
-// share the same `auctionAddress`/wallet state, and PLAN-FE-frontend.md
-// doesn't allocate a dedicated hook file for issuer write-actions the way
-// it does for useAuction/useDecrypt/useBid.
-export function IssuerDashboard() {
+type Props = {
+  auctionAddress: `0x${string}`;
+};
+
+// The orchestrating client component for a single /issuer/[address] page.
+// Consolidated into one file rather than split across many micro-hooks —
+// the 5 write flows (finalize, reveal, settle, withdraw, grant/rotate via
+// LiveAllocationTable) all share the same wallet state, and
+// PLAN-FE-frontend.md doesn't allocate a dedicated hook file for issuer
+// write-actions the way it does for useAuction/useDecrypt/useBid.
+// Create-auction now lives one level up on the /issuer listing page — this
+// component only manages an auction that already exists.
+export function IssuerDashboard({ auctionAddress }: Props) {
   const { address, isConnected } = useAccount();
-  const [auctionAddress, setAuctionAddress] = useState<`0x${string}`>(
-    CONTRACTS.demoAuction as `0x${string}`
-  );
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [actionStep, setActionStep] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -53,7 +53,9 @@ export function IssuerDashboard() {
     );
   }
 
-  const isIssuer = address?.toLowerCase() === ISSUER_ADDRESS.toLowerCase();
+  // AuctionFactory is permissionless — "issuer" is per-auction (auction.issuer),
+  // not a single global address anymore.
+  const isIssuer = address?.toLowerCase() === auction.issuer.toLowerCase();
 
   async function runAction(label: string, fn: () => Promise<void>) {
     setActionError(null);
@@ -129,73 +131,55 @@ export function IssuerDashboard() {
       {!isIssuer ? (
         <Card className="mb-8 border-oxblood/40 p-6">
           <p className="font-body text-sm text-oxblood">
-            This wallet is not the issuer. Connect with the issuer wallet to manage auctions.
+            This wallet is not this auction&apos;s issuer. Connect with the wallet that created it to
+            manage it.
           </p>
         </Card>
       ) : null}
 
-      <div className="mb-8 flex justify-end">
-        <Button variant="outline" onClick={() => setShowCreateForm((v) => !v)}>
-          {showCreateForm ? "Cancel" : "Create new auction"}
-        </Button>
-      </div>
+      <section className="mb-16">
+        <StatusBar current={auction.status} />
+      </section>
 
-      {showCreateForm ? (
-        <div className="mb-section-gap">
-          <CreateAuctionForm
-            onCreated={(addr) => {
-              setAuctionAddress(addr);
-              setShowCreateForm(false);
-            }}
-          />
-        </div>
-      ) : (
-        <>
-          <section className="mb-16">
-            <StatusBar current={auction.status} />
-          </section>
+      <section className="mb-section-gap">
+        <AuctionInfoCard auction={auction} layout="issuer" />
 
-          <section className="mb-section-gap">
-            <AuctionInfoCard auction={auction} layout="issuer" />
+        {isIssuer && auction.status === 1 ? (
+          <div className="mt-8 flex justify-end">
+            <Button
+              variant="primary"
+              disabled={!deadlinePassed || actionStep !== null}
+              onClick={handleFinalize}
+            >
+              {actionStep ?? (deadlinePassed ? "Finalize" : "Available after the deadline")}
+            </Button>
+          </div>
+        ) : null}
 
-            {isIssuer && auction.status === 1 ? (
-              <div className="mt-8 flex justify-end">
-                <Button
-                  variant="primary"
-                  disabled={!deadlinePassed || actionStep !== null}
-                  onClick={handleFinalize}
-                >
-                  {actionStep ?? (deadlinePassed ? "Finalize" : "Available after the deadline")}
-                </Button>
-              </div>
-            ) : null}
+        {isIssuer && auction.status === 2 ? (
+          <div className="mt-8 flex justify-end">
+            <Button variant="primary" disabled={actionStep !== null} onClick={handleReveal}>
+              {actionStep ?? "Reveal and complete settlement"}
+            </Button>
+          </div>
+        ) : null}
 
-            {isIssuer && auction.status === 2 ? (
-              <div className="mt-8 flex justify-end">
-                <Button variant="primary" disabled={actionStep !== null} onClick={handleReveal}>
-                  {actionStep ?? "Reveal and complete settlement"}
-                </Button>
-              </div>
-            ) : null}
+        {isIssuer && auction.status === 3 ? (
+          <div className="mt-8 flex justify-end">
+            <Button variant="primary" disabled={actionStep !== null} onClick={handleWithdraw}>
+              {actionStep ?? "Withdraw to Safe"}
+            </Button>
+          </div>
+        ) : null}
 
-            {isIssuer && auction.status === 3 ? (
-              <div className="mt-8 flex justify-end">
-                <Button variant="primary" disabled={actionStep !== null} onClick={handleWithdraw}>
-                  {actionStep ?? "Withdraw to Safe"}
-                </Button>
-              </div>
-            ) : null}
+        {actionError ? <p className="mt-4 font-mono text-xs text-oxblood">{actionError}</p> : null}
+      </section>
 
-            {actionError ? <p className="mt-4 font-mono text-xs text-oxblood">{actionError}</p> : null}
-          </section>
-
-          {auction.status === 3 ? (
-            <section>
-              <LiveAllocationTable auctionAddress={auctionAddress} bidders={auction.bidders} />
-            </section>
-          ) : null}
-        </>
-      )}
+      {auction.status === 3 ? (
+        <section>
+          <LiveAllocationTable auctionAddress={auctionAddress} bidders={auction.bidders} />
+        </section>
+      ) : null}
     </>
   );
 }
