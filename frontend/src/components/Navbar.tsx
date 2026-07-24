@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CodeIcon } from "./icons";
+import { ConnectButton } from "./ConnectButton";
 
 const GITHUB_URL = "https://github.com/RAKASAMUD/Nirliptha";
 
@@ -8,8 +9,10 @@ const GITHUB_URL = "https://github.com/RAKASAMUD/Nirliptha";
 // per-page — per the plan), so it takes no props and does no active-route
 // detection (that would need usePathname, forcing 'use client' onto every
 // route including the landing page, which the plan explicitly says must
-// stay a pure Server Component). No wallet chip here either — that's
-// ConnectButton's job once the data-wiring task adds it.
+// stay a pure Server Component). ConnectButton is a 'use client' leaf
+// dropped in here — it's the only always-visible way to disconnect once
+// connected, since Issuer/InvestorDashboard stop rendering it after they
+// pick up a connected wallet.
 export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-hairline bg-charcoal/80 backdrop-blur-xl">
@@ -39,6 +42,7 @@ export function Navbar() {
           >
             <CodeIcon className="h-5 w-5" />
           </a>
+          <ConnectButton />
         </div>
       </div>
     </nav>
