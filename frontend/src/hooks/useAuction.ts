@@ -6,6 +6,7 @@ import { CONTRACTS } from "@/lib/config";
 
 export type AuctionState = {
   status: 0 | 1 | 2 | 3;
+  issuer: `0x${string}`; // per-auction — AuctionFactory is permissionless, no single global issuer
   quantity: bigint; // bare integer count of cASSET, NOT scaled by any decimals
   reservePrice: bigint; // fixed-point in Auction.SCALE units (see `scale` below)
   deadline: bigint;
@@ -49,6 +50,7 @@ export function useAuction(auctionAddress: `0x${string}`): AuctionState {
   const { data, isLoading, refetch } = useReadContracts({
     contracts: [
       { address: auctionAddress, abi: AUCTION_ABI, functionName: "status" },
+      { address: auctionAddress, abi: AUCTION_ABI, functionName: "issuer" },
       { address: auctionAddress, abi: AUCTION_ABI, functionName: "quantity" },
       { address: auctionAddress, abi: AUCTION_ABI, functionName: "reservePrice" },
       { address: auctionAddress, abi: AUCTION_ABI, functionName: "deadline" },
@@ -68,6 +70,7 @@ export function useAuction(auctionAddress: `0x${string}`): AuctionState {
 
   const [
     statusR,
+    issuerR,
     quantityR,
     reservePriceR,
     deadlineR,
@@ -87,6 +90,7 @@ export function useAuction(auctionAddress: `0x${string}`): AuctionState {
 
   return {
     status: (statusR?.result as 0 | 1 | 2 | 3) ?? 0,
+    issuer: (issuerR?.result as `0x${string}`) ?? ZERO_ADDRESS,
     quantity: (quantityR?.result as bigint) ?? BigInt(0),
     reservePrice: (reservePriceR?.result as bigint) ?? BigInt(0),
     deadline: (deadlineR?.result as bigint) ?? BigInt(0),
