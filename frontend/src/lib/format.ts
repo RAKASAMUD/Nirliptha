@@ -17,6 +17,27 @@ export function parseToken(value: string | number, decimals: number): bigint {
   return BigInt(whole || "0") * BigInt(10) ** BigInt(decimals) + BigInt(paddedFraction || "0");
 }
 
+/**
+ * Raw integer -> human-readable string using Auction.sol's own `SCALE`
+ * constant, NOT a token's `decimals()`. Auction.sol's `quantity`,
+ * `reservePrice`, and `clearingPrice` are plain fixed-point integers in
+ * SCALE units (confirmed against live Sepolia data: SCALE=1_000_000,
+ * reservePrice=1_000_000 raw is 1.00, not the ~0 you'd get dividing by
+ * cUSD.decimals()=18) — deliberately a separate function from formatToken
+ * so the two scales never get confused at a call site.
+ */
+export function formatScaled(raw: bigint, scale: bigint): string {
+  const whole = raw / scale;
+  const fraction = raw % scale;
+  if (fraction === BigInt(0)) return whole.toLocaleString("en-US");
+  const scaleDigits = scale.toString().length - 1;
+  const fractionStr = fraction
+    .toString()
+    .padStart(scaleDigits, "0")
+    .replace(/0+$/, "");
+  return `${whole.toLocaleString("en-US")}.${fractionStr}`;
+}
+
 export function shortAddress(addr: string): string {
   if (!addr || addr.length < 10) return addr;
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;

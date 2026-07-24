@@ -3,48 +3,31 @@ import { DataRow } from "./DataRow";
 import { StatusPill } from "./StatusPill";
 import { EncryptedValue } from "./EncryptedValue";
 import { Countdown } from "./Countdown";
-
-// Mirrors the shape `useAuction()` will return once PLAN-FE-frontend.md
-// Task 3 wires up the real data layer (`hooks/useAuction.ts`). Kept as an
-// explicit local type for this presentational pass — swapping it for
-// `ReturnType<typeof useAuction>` later is a one-line change since the field
-// names already match the plan's locked interface.
-export type AuctionData = {
-  status: 0 | 1 | 2 | 3;
-  quantity: bigint;
-  reservePrice: bigint;
-  deadline: bigint; // unix seconds
-  safeAddress: string;
-  clearingPrice: bigint;
-  bidCount: number;
-  decimals?: number; // read from contract in the data-layer task; defaults to 6 for the demo
-};
+import { formatScaled, shortAddress } from "@/lib/format";
+import type { useAuction } from "@/hooks/useAuction";
 
 type Props = {
-  auction: AuctionData;
+  auction: ReturnType<typeof useAuction>;
   layout?: "issuer" | "investor";
 };
 
-const STATUS_LABEL: Record<AuctionData["status"], string> = {
+const STATUS_LABEL: Record<0 | 1 | 2 | 3, string> = {
   0: "Awaiting escrow",
   1: "Open for bids",
   2: "Revealing clearing price",
   3: "Settled",
 };
 
-function formatToken(raw: bigint, decimals: number) {
-  const divisor = BigInt(10) ** BigInt(decimals);
-  const whole = raw / divisor;
-  return whole.toLocaleString("en-US");
-}
-
 // The one shared info card used by both the issuer dashboard and the
 // investor sidebar (PLAN-FE-frontend.md Task 3: "shared:
 // quantity/reserve/deadline/bidders"). Content shifts by `status`, not by a
 // separate component per state — action buttons (Finalize, BidForm, etc.)
 // are composed by the calling page around this card, not inside it.
+// quantity/reservePrice/clearingPrice are Auction.sol's own public fields,
+// scaled by the contract's SCALE constant — NOT by cUSD/cAsset's decimals()
+// (which turned out to be 18, the unmodified ERC7984Base default; see the
+// long comment in hooks/useAuction.ts for how this was discovered).
 export function AuctionInfoCard({ auction, layout = "issuer" }: Props) {
-  const decimals = auction.decimals ?? 6;
   const isSettled = auction.status === 3;
 
   return (
@@ -61,27 +44,21 @@ export function AuctionInfoCard({ auction, layout = "issuer" }: Props) {
             Clearing price
           </p>
           <p className="font-display text-5xl text-parchment">
-            {formatToken(auction.clearingPrice, decimals)}{" "}
+            {formatScaled(auction.clearingPrice, auction.scale)}{" "}
             <span className="text-2xl text-muted">cUSD</span>
           </p>
         </div>
       ) : null}
 
       <div className="flex flex-col gap-0 border-t border-hairline pt-6">
-        <DataRow label="Quantity" value={`${formatToken(auction.quantity, decimals)} cASSET`} />
+        <DataRow label="Quantity" value={`${auction.quantity.toLocaleString("en-US")} cASSET`} />
         <DataRow
           label="Reserve price"
-          value={`${formatToken(auction.reservePrice, decimals)} cUSD`}
+          value={`${formatScaled(auction.reservePrice, auction.scale)} cUSD`}
         />
         <DataRow label="Bids so far" value={auction.bidCount} border={!isSettled} />
         {isSettled ? (
-          <DataRow
-            label="Settled to treasury"
-            value={
-              <span className="flex items-center gap-2">{shortAddress(auction.safeAddress)}</span>
-            }
-            border={false}
-          />
+          <DataRow label="Settled to treasury" value={shortAddress(auction.safeAddress)} border={false} />
         ) : null}
       </div>
 
@@ -105,9 +82,4 @@ export function AuctionInfoCard({ auction, layout = "issuer" }: Props) {
       ) : null}
     </Card>
   );
-}
-
-function shortAddress(addr: string) {
-  if (addr.length < 10) return addr;
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
