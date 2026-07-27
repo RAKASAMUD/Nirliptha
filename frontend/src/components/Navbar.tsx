@@ -1,50 +1,80 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CodeIcon } from "./icons";
-import { ConnectButton } from "./ConnectButton";
+import { usePathname } from "next/navigation";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { SignInMenu } from "./SignInMenu";
 
 const GITHUB_URL = "https://github.com/RAKASAMUD/Nirliptha";
 
-// Locked structure per PLAN-FE-frontend.md Task 2: logo left, Issuer/Investor
-// links + GitHub icon right. Rendered once from the root layout (not
-// per-page — per the plan), so it takes no props and does no active-route
-// detection (that would need usePathname, forcing 'use client' onto every
-// route including the landing page, which the plan explicitly says must
-// stay a pure Server Component). ConnectButton is a 'use client' leaf
-// dropped in here — it's the only always-visible way to disconnect once
-// connected, since Issuer/InvestorDashboard stop rendering it after they
-// pick up a connected wallet.
 export function Navbar() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
+  const isInvestorPage =
+    pathname?.startsWith("/investor") || pathname?.startsWith("/login-investor");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 15) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const isLoginPage = pathname?.startsWith("/login-investor");
+
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-hairline bg-charcoal/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-(--container-max-width) items-center justify-between px-margin-mobile md:px-margin-desktop">
-        <Link href="/" className="font-display text-2xl tracking-tight text-parchment">
+    <div
+      className={`flex justify-center px-margin-mobile md:px-margin-desktop transition-all duration-300 ${
+        isLoginPage
+          ? "relative z-0 pt-6 pb-2"
+          : `sticky top-0 z-50 ${isScrolled ? "pt-3 pb-3" : "pt-6 pb-2"}`
+      }`}
+    >
+      <nav
+        className={`flex h-16 w-full max-w-(--container-max-width) items-center justify-between rounded-full px-6 transition-all duration-300 ${
+          isInvestorPage
+            ? isScrolled
+              ? "border border-oxblood/20 bg-white/95 shadow-xl backdrop-blur-xl scale-[0.99]"
+              : "border border-oxblood/15 bg-white/80 backdrop-blur-md shadow-sm"
+            : isScrolled
+              ? "border border-hairline-strong bg-charcoal/85 shadow-2xl backdrop-blur-xl scale-[0.99]"
+              : "border border-white/10 bg-black/40 backdrop-blur-md shadow-md"
+        }`}
+      >
+        <Link
+          href="/"
+          className={`font-display text-2xl tracking-tight transition-colors ${
+            isInvestorPage
+              ? "text-oxblood font-bold hover:text-charcoal"
+              : "text-parchment hover:text-white"
+          }`}
+        >
           NIRLIPTA
         </Link>
         <div className="flex items-center gap-gutter">
-          <Link
-            href="/issuer"
-            className="font-body text-sm text-muted transition-colors hover:text-parchment"
-          >
-            Issuer
-          </Link>
-          <Link
-            href="/investor"
-            className="font-body text-sm text-muted transition-colors hover:text-parchment"
-          >
-            Investor
-          </Link>
+          <SignInMenu isInvestorTheme={isInvestorPage} />
           <a
             href={GITHUB_URL}
             target="_blank"
             rel="noreferrer"
             aria-label="GitHub repository"
-            className="rounded-full p-2 text-muted transition-colors hover:bg-white/5 hover:text-parchment"
+            className={`rounded-full p-2 transition-colors ${
+              isInvestorPage
+                ? "text-charcoal/70 hover:bg-oxblood/10 hover:text-oxblood"
+                : "text-muted hover:bg-white/5 hover:text-parchment"
+            }`}
           >
-            <CodeIcon className="h-5 w-5" />
+            <GitHubLogoIcon className="h-5 w-5" />
           </a>
-          <ConnectButton />
         </div>
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }
