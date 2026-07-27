@@ -1,4 +1,4 @@
-import { createConfig, http, injected } from "wagmi";
+import { createConfig, http, fallback, injected } from "wagmi";
 import { sepolia } from "wagmi/chains";
 
 export const wagmiConfig = createConfig({
@@ -10,7 +10,12 @@ export const wagmiConfig = createConfig({
     injected(),
   ],
   transports: {
-    [sepolia.id]: http(),
+    [sepolia.id]: fallback([
+      http("https://ethereum-sepolia-rpc.publicnode.com"),
+      http("https://rpc.sepolia.org"),
+      http("https://1rpc.io/sepolia"),
+      http(),
+    ]),
   },
   ssr: true,
 });
