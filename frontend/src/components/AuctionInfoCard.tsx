@@ -2,6 +2,7 @@ import { Card } from "./Card";
 import { DataRow } from "./DataRow";
 import { EncryptedValue } from "./EncryptedValue";
 import { Countdown } from "./Countdown";
+import { AuctionLifecycleStepper } from "./AuctionLifecycleStepper";
 import { formatScaled, shortAddress, etherscanTx } from "@/lib/format";
 import type { useAuction } from "@/hooks/useAuction";
 
@@ -52,7 +53,7 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
   return (
     <Card className={isIssuerLayout ? "p-8 md:p-10 shadow-2xl bg-surface border-hairline-strong" : "p-8 md:p-10 shadow-xl bg-white/95 border-oxblood/15"}>
       {/* Top Header Row */}
-      <div className={`mb-8 flex flex-wrap items-center justify-between gap-4 border-b pb-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
+      <div className={`mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
         <div>
           <span className={`inline-block mb-1.5 rounded-full border px-3 py-0.5 font-body text-[10px] font-bold uppercase tracking-wider ${
             isIssuerLayout ? "border-oxblood/40 bg-oxblood/20 text-parchment" : "border-oxblood/20 bg-oxblood/10 text-oxblood"
@@ -76,6 +77,9 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
         </div>
         {renderStatusBadge()}
       </div>
+
+      {/* Lifecycle Stage Path Stepper */}
+      <AuctionLifecycleStepper status={auction.status} layout={layout} />
 
       {/* Main KPI Highlight Blocks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">

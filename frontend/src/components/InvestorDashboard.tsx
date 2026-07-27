@@ -10,6 +10,7 @@ import { useBid } from "@/hooks/useBid";
 import { useDecrypt } from "@/hooks/useDecrypt";
 import { formatScaled, shortAddress } from "@/lib/format";
 import { AuctionInfoCard } from "./AuctionInfoCard";
+import { AuctionLifecycleStepper } from "./AuctionLifecycleStepper";
 import { Countdown } from "./Countdown";
 import { BidForm } from "./BidForm";
 import { Card } from "./Card";
@@ -222,6 +223,8 @@ export function InvestorDashboard({ auctionAddress }: Props) {
             )}
           </div>
         </div>
+
+        <AuctionLifecycleStepper status={auction.status} layout="investor" />
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="rounded-[16px] border border-oxblood/10 bg-rose-50/40 p-4">
