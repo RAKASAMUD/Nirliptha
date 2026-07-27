@@ -7,7 +7,7 @@ import {Nox} from "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";
 import {euint256, externalEuint256} from "encrypted-types/EncryptedTypes.sol";
 
 /// @title CUSD — Confidential USD token (ERC7984)
-/// @notice Only owner (issuer) can mint. Balances stored as encrypted handles.
+/// @notice Balances stored as encrypted handles. Includes testnet faucet for demo.
 contract CUSD is ERC7984, Ownable {
     constructor() ERC7984("Confidential USD", "cUSD", "") Ownable(msg.sender) {}
 
@@ -20,6 +20,17 @@ contract CUSD is ERC7984, Ownable {
         euint256 amount = Nox.fromExternal(encryptedAmount, inputProof);
         euint256 minted = _mint(to, amount);
         Nox.allow(minted, to);
+        return minted;
+    }
+
+    /// @notice Public testnet faucet minting for demo/testing on Sepolia
+    function faucetMint(
+        externalEuint256 encryptedAmount,
+        bytes calldata inputProof
+    ) external returns (euint256) {
+        euint256 amount = Nox.fromExternal(encryptedAmount, inputProof);
+        euint256 minted = _mint(msg.sender, amount);
+        Nox.allow(minted, msg.sender);
         return minted;
     }
 }
