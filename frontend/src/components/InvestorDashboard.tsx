@@ -10,7 +10,7 @@ import { useBid } from "@/hooks/useBid";
 import { useDecrypt } from "@/hooks/useDecrypt";
 import { formatScaled, shortAddress } from "@/lib/format";
 import { AuctionInfoCard } from "./AuctionInfoCard";
-import { AuctionLifecycleStepper } from "./AuctionLifecycleStepper";
+import { StatusBar } from "./StatusBar";
 import { Countdown } from "./Countdown";
 import { BidForm } from "./BidForm";
 import { Card } from "./Card";
@@ -176,8 +176,8 @@ export function InvestorDashboard({ auctionAddress }: Props) {
   const isDeadlinePassed = Number(auction.deadline) > 0 && Math.floor(Date.now() / 1000) > Number(auction.deadline);
 
   return (
-    <div className="mx-auto max-w-4xl flex flex-col gap-8 font-body">
-      <div>
+    <div className="w-full font-body py-2">
+      <div className="mb-4">
         <Link
           href="/investor"
           className="inline-flex items-center gap-2 rounded-full border border-oxblood/20 bg-white/90 px-4 py-2 text-xs font-semibold text-charcoal shadow-xs transition-all duration-300 hover:bg-white hover:border-oxblood/40 hover:text-oxblood hover:shadow-sm"
@@ -189,93 +189,100 @@ export function InvestorDashboard({ auctionAddress }: Props) {
         </Link>
       </div>
 
-      <div className="rounded-[24px] border border-oxblood/15 bg-white/95 p-6 md:p-8 shadow-[0_10px_35px_rgba(132,0,22,0.08)]">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-oxblood/10 pb-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                isSettled ? "border-indigo-500/30 bg-indigo-50 text-indigo-700" : "border-oxblood/30 bg-oxblood/10 text-oxblood"
-              }`}>
-                Private Asset Offering
-              </span>
-              <span className="font-body text-xs text-charcoal/60">
-                Encrypted Sealed-Bid Auction
-              </span>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT COLUMN (7 cols): Main Auction Details + Status Bar + KPIs */}
+        <div className="lg:col-span-7 flex flex-col gap-4">
+          <div className="rounded-[24px] border border-oxblood/15 bg-white/95 p-6 md:p-8 shadow-[0_10px_35px_rgba(132,0,22,0.08)]">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-4 border-b border-oxblood/10 pb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    isSettled ? "border-indigo-500/30 bg-indigo-50 text-indigo-700" : "border-oxblood/30 bg-oxblood/10 text-oxblood"
+                  }`}>
+                    Private Asset Offering
+                  </span>
+                  <span className="font-body text-xs text-charcoal/60">
+                    Encrypted Sealed-Bid Auction
+                  </span>
+                </div>
+                <h1 className="font-display text-3xl md:text-4xl text-charcoal">
+                  Asset Offering <span className="font-mono text-xl font-normal text-charcoal/60">#{shortAddress(auctionAddress).slice(-4)}</span>
+                </h1>
+              </div>
+
+              <div>
+                {isSettled ? (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-50 px-4 py-1.5 text-xs font-bold text-indigo-700 uppercase shadow-xs">
+                    ✓ Auction Settled
+                  </span>
+                ) : isPending ? (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-50 px-4 py-1.5 text-xs font-bold text-amber-700 uppercase shadow-xs">
+                    <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> Resolution Pending
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-4 py-1.5 text-xs font-bold text-emerald-700 uppercase shadow-xs">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Bidding Live
+                  </span>
+                )}
+              </div>
             </div>
-            <h1 className="font-display text-3xl md:text-5xl text-charcoal">
-              Asset Offering <span className="font-mono text-xl font-normal text-charcoal/60">#{shortAddress(auctionAddress).slice(-4)}</span>
-            </h1>
-          </div>
 
-          <div>
-            {isSettled ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-50 px-4 py-1.5 text-xs font-bold text-indigo-700 uppercase shadow-xs">
-                ✓ Auction Settled
-              </span>
-            ) : isPending ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-50 px-4 py-1.5 text-xs font-bold text-amber-700 uppercase shadow-xs">
-                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> Resolution Pending
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-4 py-1.5 text-xs font-bold text-emerald-700 uppercase shadow-xs">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Bidding Live
-              </span>
-            )}
-          </div>
-        </div>
+            <div className="my-4 rounded-[20px] border border-oxblood/10 bg-white/90 p-5 shadow-sm">
+              <StatusBar current={auction.status} />
+            </div>
 
-        <AuctionLifecycleStepper status={auction.status} layout="investor" />
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="rounded-[14px] border border-oxblood/10 bg-rose-50/40 p-3.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-0.5">
+                  {isSettled ? "Clearing Price" : "Min Price"}
+                </span>
+                <span className={`font-display text-lg font-bold ${isSettled ? "text-indigo-700" : "text-oxblood"}`}>
+                  {isSettled && auction.clearingPrice > BigInt(0) && auction.clearingPrice < BigInt("340282366920938463463374607431768211455")
+                    ? formatScaled(auction.clearingPrice, auction.scale)
+                    : formatScaled(auction.reservePrice, auction.scale)}{" "}
+                  <span className="font-sans text-xs font-normal text-charcoal/60">cUSD</span>
+                </span>
+              </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div className="rounded-[16px] border border-oxblood/10 bg-rose-50/40 p-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-1">
-              {isSettled ? "Clearing Price" : "Min Price"}
-            </span>
-            <span className={`font-display text-xl font-bold ${isSettled ? "text-indigo-700" : "text-oxblood"}`}>
-              {isSettled && auction.clearingPrice > BigInt(0) && auction.clearingPrice < BigInt("340282366920938463463374607431768211455")
-                ? formatScaled(auction.clearingPrice, auction.scale)
-                : formatScaled(auction.reservePrice, auction.scale)}{" "}
-              <span className="font-sans text-xs font-normal text-charcoal/60">cUSD</span>
-            </span>
-          </div>
+              <div className="rounded-[14px] border border-oxblood/10 bg-rose-50/40 p-3.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-0.5">
+                  Total Quantity
+                </span>
+                <span className="font-display text-lg font-bold text-charcoal">
+                  {auction.quantity.toLocaleString("en-US")}{" "}
+                  <span className="font-sans text-xs font-normal text-charcoal/60">cASSET</span>
+                </span>
+              </div>
 
-          <div className="rounded-[16px] border border-oxblood/10 bg-rose-50/40 p-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-1">
-              Total Quantity
-            </span>
-            <span className="font-display text-xl font-bold text-charcoal">
-              {auction.quantity.toLocaleString("en-US")}{" "}
-              <span className="font-sans text-xs font-normal text-charcoal/60">cASSET</span>
-            </span>
-          </div>
+              <div className="rounded-[14px] border border-oxblood/10 bg-rose-50/40 p-3.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-0.5">
+                  Bids Submitted
+                </span>
+                <span className="font-display text-lg font-bold text-charcoal">
+                  {auction.bidCount} / 5
+                </span>
+              </div>
 
-          <div className="rounded-[16px] border border-oxblood/10 bg-rose-50/40 p-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-1">
-              Bids Submitted
-            </span>
-            <span className="font-display text-xl font-bold text-charcoal">
-              {auction.bidCount} / 5
-            </span>
-          </div>
-
-          <div className="rounded-[16px] border border-oxblood/10 bg-rose-50/40 p-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-1">
-              {isSettled ? "Settlement" : "Time Remaining"}
-            </span>
-            {isSettled ? (
-              <span className="font-body text-xs font-bold text-indigo-700 flex items-center gap-1.5 mt-1">
-                ✓ Completed
-              </span>
-            ) : auction.deadline ? (
-              <Countdown deadline={auction.deadline} className="text-xs text-charcoal" />
-            ) : (
-              <span className="font-body text-xs text-charcoal/60">N/A</span>
-            )}
+              <div className="rounded-[14px] border border-oxblood/10 bg-rose-50/40 p-3.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-0.5">
+                  {isSettled ? "Settlement" : "Time Remaining"}
+                </span>
+                {isSettled ? (
+                  <span className="font-body text-xs font-bold text-indigo-700 flex items-center gap-1.5 mt-0.5">
+                    ✓ Completed
+                  </span>
+                ) : auction.deadline ? (
+                  <Countdown deadline={auction.deadline} className="text-xs text-charcoal" />
+                ) : (
+                  <span className="font-body text-xs text-charcoal/60">N/A</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <main className="flex flex-col gap-6">
+        {/* RIGHT COLUMN (5 cols): Interactive Form Action Panel */}
+        <main className="lg:col-span-5 flex flex-col gap-4">
         {auction.status === 3 ? (
           bid.hasClaimed || claimedNow ? (
             <Card className="p-8 md:p-10 bg-white/95 border border-indigo-500/20 shadow-[0_10px_35px_rgba(79,70,229,0.08)] rounded-[24px]">
@@ -559,8 +566,9 @@ export function InvestorDashboard({ auctionAddress }: Props) {
           />
         )}
       </main>
+      </div>
 
-      <footer className="rounded-[20px] border border-oxblood/10 bg-white/70 p-5 backdrop-blur-md shadow-xs flex flex-wrap items-center justify-between gap-4 font-body text-xs text-charcoal/70">
+      <footer className="mt-6 rounded-[20px] border border-oxblood/10 bg-white/70 p-5 backdrop-blur-md shadow-xs flex flex-wrap items-center justify-between gap-4 font-body text-xs text-charcoal/70">
         <div className="flex items-center gap-6">
           <div>
             <span className="text-[10px] uppercase font-semibold text-charcoal/50 block">Issuer Address</span>

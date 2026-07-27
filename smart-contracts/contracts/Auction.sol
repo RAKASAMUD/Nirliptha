@@ -341,6 +341,33 @@ contract Auction is ReentrancyGuard {
         emit WithdrawnToSafe(safe);
     }
 
+    /// @notice Recover cAsset when auction expired with zero bids.
+    /// @dev    finalize() has require(N > 0) so it cannot be used in the 0-bid case.
+    ///         This function handles that gap: it transitions directly to Settled and
+    ///         returns the full cAsset balance back to the issuer's Safe.
+    ///         Can only be called when status is Open (confirmEscrow was called) AND
+    ///         deadline has passed AND there are genuinely 0 bids.
+    function recoverAssetIfNoBids() external onlyIssuer onlyOpen afterDeadline nonReentrant {
+        require(bids.length == 0, "Has bids: use finalize()");
+        status = AuctionTypes.Status.Settled;
+        euint256 balance = cAsset.confidentialBalanceOf(address(this));
+        Nox.allowThis(balance);
+        cAsset.confidentialTransfer(safe, balance);
+        emit WithdrawnToSafe(safe);
+    }
+
+    /// @notice Recover cAsset when wizard setup was abandoned (confirmEscrow never called).
+    /// @dev    Status 0 (AwaitingEscrow) means confirmEscrow() was never called.
+    ///         cAsset may have been transferred in wizard Step 2 but Step 3 was cancelled.
+    ///         This function returns whatever cAsset balance is in this contract back to Safe.
+    function abandonEscrow() external onlyIssuer onlyAwaitingEscrow nonReentrant {
+        status = AuctionTypes.Status.Settled;
+        euint256 balance = cAsset.confidentialBalanceOf(address(this));
+        Nox.allowThis(balance);
+        cAsset.confidentialTransfer(safe, balance);
+        emit WithdrawnToSafe(safe);
+    }
+
     // ============ Task M3.1: grantAuditView + rotateHandles ============
 
     /// @notice Grants an auditor decryption access to a bidder's allocation handle.

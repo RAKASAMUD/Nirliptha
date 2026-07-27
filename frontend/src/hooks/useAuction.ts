@@ -68,6 +68,8 @@ export function useAuction(auctionAddress: `0x${string}`): AuctionState {
     query: {
       enabled: !!auctionAddress && /^0x[a-fA-F0-9]{40}$/.test(auctionAddress) && auctionAddress !== ZERO_ADDRESS,
       refetchInterval: 10_000,
+      refetchOnMount: "always",
+      staleTime: 0,
     },
   });
 

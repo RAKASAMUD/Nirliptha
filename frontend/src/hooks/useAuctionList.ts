@@ -29,7 +29,7 @@ export function useAuctionList() {
     contracts: [
       { address: CONTRACTS.factory as `0x${string}`, abi: AUCTIONFACTORY_ABI, functionName: "auctionCount" },
     ],
-    query: { refetchInterval: 15_000 },
+    query: { refetchInterval: 15_000, refetchOnMount: "always", staleTime: 0 },
   });
 
   const count = Number((countData?.[0]?.result as bigint | undefined) ?? BigInt(0));
@@ -59,7 +59,7 @@ export function useAuctionList() {
       { address, abi: AUCTION_ABI, functionName: "SCALE" as const },
       { address, abi: AUCTION_ABI, functionName: "clearingPrice" as const },
     ]),
-    query: { enabled: addresses.length > 0, refetchInterval: 15_000 },
+    query: { enabled: addresses.length > 0, refetchInterval: 15_000, refetchOnMount: "always", staleTime: 0 },
   });
 
   const auctions: AuctionSummary[] = addresses.map((address, i) => {

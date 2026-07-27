@@ -12,7 +12,7 @@ export default async function IssuerAuctionPage({
   const { address } = await params;
 
   return (
-    <main className="mx-auto max-w-(--container-max-width) px-margin-mobile py-section-gap md:px-margin-desktop">
+    <main className="w-full px-4 sm:px-6 lg:px-10 py-4 md:py-6 font-body">
       <IssuerDashboard auctionAddress={address as `0x${string}`} />
     </main>
   );

@@ -14,14 +14,15 @@ import { shortAddress } from "@/lib/format";
 type Props = {
   onCreated: (auctionAddress: `0x${string}`) => void;
   onCancel?: () => void;
+  resumeAddress?: `0x${string}`; // pre-existing auction (step 1 already done)
 };
 
 const APPROVED_SAFES = [
   CONTRACTS.safe.toLowerCase(),
 ];
 
-export function CreateAuctionForm({ onCreated, onCancel }: Props) {
-  const [assetName, setAssetName] = useState("Stadion Qatar World Cup 2026");
+export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props) {
+  const [assetName, setAssetName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [reservePrice, setReservePrice] = useState("");
   const [hours, setHours] = useState("");
@@ -29,12 +30,17 @@ export function CreateAuctionForm({ onCreated, onCancel }: Props) {
   const [seconds, setSeconds] = useState("");
   const [safeAddress, setSafeAddress] = useState<string>("");
   const [safeStatus, setSafeStatus] = useState<"checking" | "valid_protocol" | "valid_contract" | "valid_wallet" | "invalid">("invalid");
-  
-  // Wizard Modal States
-  const [wizardStep, setWizardStep] = useState<"idle" | "preview" | "step1" | "step2" | "step3" | "success" | "error">("idle");
+
+  // If resumeAddress is provided, step 1 (deploy) already completed —
+  // pre-seed its address and jump straight into step 2 (escrow transfer)
+  const [wizardStep, setWizardStep] = useState<"idle" | "preview" | "step1" | "step2" | "step3" | "success" | "error">(
+    resumeAddress ? "step2" : "idle"
+  );
   const [wizardError, setWizardError] = useState<string | null>(null);
-  const [createdAuctionAddress, setCreatedAuctionAddress] = useState<`0x${string}` | null>(null);
-  const [failedAtStep, setFailedAtStep] = useState<"step1" | "step2" | "step3">("step1");
+  const [createdAuctionAddress, setCreatedAuctionAddress] = useState<`0x${string}` | null>(
+    resumeAddress ?? null
+  );
+  const [failedAtStep, setFailedAtStep] = useState<"step1" | "step2" | "step3">("step2");
 
   const [fieldErrors, setFieldErrors] = useState<{
     quantity?: boolean;
@@ -202,35 +208,34 @@ export function CreateAuctionForm({ onCreated, onCancel }: Props) {
       // STEP 2: Secure Confidential Assets (Escrow Transfer)
       setFailedAtStep("step2");
       setWizardStep("step2");
-      const { handle, handleProof } = await encryptUint(activeWalletClient, quantityRaw, CONTRACTS.cAsset as `0x${string}`);
 
-      try {
-        const transferTx = await writeContractAsync({
-          address: CONTRACTS.cAsset as `0x${string}`,
-          abi: CASSET_ABI,
-          functionName: "confidentialTransfer",
-          args: [currentAuctionAddr, handle, handleProof],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: transferTx });
-      } catch (err) {
-        // If issuer wallet has insufficient cAsset balance, auto-mint cAsset to issuer first then transfer
-        const mintTx = await writeContractAsync({
-          address: CONTRACTS.cAsset as `0x${string}`,
-          abi: CASSET_ABI,
-          functionName: "faucetMint",
-          args: [handle, handleProof],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: mintTx });
+      // Auto-mint cAsset to issuer first to guarantee sufficient balance for issuance
+      const { handle: mintHandle, handleProof: mintProof } = await encryptUint(
+        activeWalletClient,
+        quantityRaw,
+        CONTRACTS.cAsset as `0x${string}`
+      );
+      const mintTx = await writeContractAsync({
+        address: CONTRACTS.cAsset as `0x${string}`,
+        abi: CASSET_ABI,
+        functionName: "faucetMint",
+        args: [mintHandle, mintProof],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: mintTx });
 
-        const { handle: h2, handleProof: p2 } = await encryptUint(activeWalletClient, quantityRaw, CONTRACTS.cAsset as `0x${string}`);
-        const transferTx2 = await writeContractAsync({
-          address: CONTRACTS.cAsset as `0x${string}`,
-          abi: CASSET_ABI,
-          functionName: "confidentialTransfer",
-          args: [currentAuctionAddr, h2, p2],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: transferTx2 });
-      }
+      // Transfer cAsset into Auction escrow
+      const { handle: xferHandle, handleProof: xferProof } = await encryptUint(
+        activeWalletClient,
+        quantityRaw,
+        CONTRACTS.cAsset as `0x${string}`
+      );
+      const transferTx = await writeContractAsync({
+        address: CONTRACTS.cAsset as `0x${string}`,
+        abi: CASSET_ABI,
+        functionName: "confidentialTransfer",
+        args: [currentAuctionAddr, xferHandle, xferProof],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: transferTx });
 
       // STEP 3: Activate Auction (Confirm Escrow)
       setFailedAtStep("step3");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useAuctionList } from "@/hooks/useAuctionList";
 import { AuctionCard } from "./AuctionCard";
@@ -20,14 +20,24 @@ export function IssuerListing() {
   const { address, isConnected } = useAccount();
   const { auctions, isLoading, refetch } = useAuctionList();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [resumeAddress, setResumeAddress] = useState<`0x${string}` | undefined>(undefined);
   const [filter, setFilter] = useState<"all" | "active" | "pending" | "settled" | "wallet">("all");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.search.includes("tab=wallet")) {
       setFilter("wallet");
     }
-  }, []);
+    // Auto-open form in resume mode if ?resume=0x... is in the URL
+    const resume = searchParams.get("resume");
+    if (resume && /^0x[a-fA-F0-9]{40}$/.test(resume)) {
+      setResumeAddress(resume as `0x${string}`);
+      setShowCreateForm(true);
+      // Clean URL without reload
+      router.replace("/issuer");
+    }
+  }, [searchParams]);
 
   if (!isConnected) {
     return <AuthHero role="issuer" />;
@@ -35,12 +45,16 @@ export function IssuerListing() {
 
   const mine = auctions.filter((a) => a.issuer.toLowerCase() === address?.toLowerCase());
 
-  const totalCount = mine.length;
-  const activeCount = mine.filter((a) => a.status === 1).length;
-  const pendingCount = mine.filter((a) => a.status === 2).length;
-  const settledCount = mine.filter((a) => a.status === 3).length;
+  // Status 0 = incomplete setup (wizard was cancelled mid-way)
+  const incompleteSetup = mine.filter((a) => a.status === 0);
+  const completed = mine.filter((a) => a.status !== 0);
 
-  const filteredAuctions = mine.filter((a) => {
+  const totalCount = completed.length;
+  const activeCount = completed.filter((a) => a.status === 1).length;
+  const pendingCount = completed.filter((a) => a.status === 2).length;
+  const settledCount = completed.filter((a) => a.status === 3).length;
+
+  const filteredAuctions = completed.filter((a) => {
     if (filter === "active") return a.status === 1;
     if (filter === "pending") return a.status === 2;
     if (filter === "settled") return a.status === 3;
@@ -82,15 +96,51 @@ export function IssuerListing() {
       {showCreateForm ? (
         <div className="mb-section-gap">
           <CreateAuctionForm
-            onCancel={() => setShowCreateForm(false)}
+            resumeAddress={resumeAddress}
+            onCancel={() => { setShowCreateForm(false); setResumeAddress(undefined); }}
             onCreated={(addr) => {
               setShowCreateForm(false);
+              setResumeAddress(undefined);
               refetch();
               router.push(`/issuer/${addr}`);
             }}
           />
         </div>
       ) : null}
+
+      {/* Incomplete Setup Banner — status 0 auctions (wizard cancelled mid-way) */}
+      {incompleteSetup.length > 0 && !showCreateForm && (
+        <div className="mb-8 flex flex-col gap-3">
+          <p className="font-body text-xs font-semibold uppercase tracking-widest text-amber-400 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            Incomplete Setup ({incompleteSetup.length})
+          </p>
+          {incompleteSetup.map((a) => (
+            <div
+              key={a.address}
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-[16px] border border-amber-500/30 bg-amber-500/5 px-5 py-4 font-body"
+            >
+              <div>
+                <p className="text-sm font-semibold text-parchment">
+                  Asset Offering{" "}
+                  <span className="font-mono text-xs text-muted">#{a.address.slice(-4)}</span>
+                </p>
+                <p className="mt-0.5 text-[11px] text-amber-300/80">
+                  Setup dibatalkan sebelum selesai — escrow belum dikonfirmasi.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => router.push(`/issuer/${a.address}`)}
+                  className="rounded-full bg-amber-500/20 border border-amber-500/40 px-4 py-2 text-xs font-semibold text-amber-200 hover:bg-amber-500/30 transition-all cursor-pointer"
+                >
+                  ▶ Resume Setup
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className="mb-8 flex flex-wrap gap-2 border-b border-hairline-strong pb-4">

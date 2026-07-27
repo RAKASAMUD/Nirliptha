@@ -2,7 +2,7 @@ import { Card } from "./Card";
 import { DataRow } from "./DataRow";
 import { EncryptedValue } from "./EncryptedValue";
 import { Countdown } from "./Countdown";
-import { AuctionLifecycleStepper } from "./AuctionLifecycleStepper";
+import { StatusBar } from "./StatusBar";
 import { formatScaled, shortAddress, etherscanTx } from "@/lib/format";
 import type { useAuction } from "@/hooks/useAuction";
 
@@ -55,11 +55,6 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
       {/* Top Header Row */}
       <div className={`mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
         <div>
-          <span className={`inline-block mb-1.5 rounded-full border px-3 py-0.5 font-body text-[10px] font-bold uppercase tracking-wider ${
-            isIssuerLayout ? "border-oxblood/40 bg-oxblood/20 text-parchment" : "border-oxblood/20 bg-oxblood/10 text-oxblood"
-          }`}>
-            Private Asset Offering
-          </span>
           <h2 className={`font-display text-3xl md:text-4xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
             Asset Offering <span className="font-mono text-xl font-normal opacity-70">#{shortAddress(displayAddress).slice(-4)}</span>
           </h2>
@@ -78,18 +73,20 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
         {renderStatusBadge()}
       </div>
 
-      {/* Lifecycle Stage Path Stepper */}
-      <AuctionLifecycleStepper status={auction.status} layout={layout} />
+      {/* GSAP Animated 4-Stage Circle & Connector Status Bar */}
+      <div className="my-6">
+        <StatusBar current={auction.status} />
+      </div>
 
-      {/* Main KPI Highlight Blocks */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      {/* Main KPI Highlight Blocks (3 Columns) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className={`rounded-[16px] border p-6 ${isIssuerLayout ? "border-hairline-strong bg-black/40" : "border-oxblood/10 bg-rose-50/40"}`}>
           <span className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
             Quantity For Sale
           </span>
-          <p className={`font-display text-3xl md:text-4xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
+          <p className={`font-display text-2xl md:text-3xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
             {auction.quantity.toLocaleString("en-US")}{" "}
-            <span className="font-sans text-lg font-normal opacity-70">cASSET</span>
+            <span className="font-sans text-base font-normal opacity-70">cASSET</span>
           </p>
         </div>
 
@@ -97,34 +94,23 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
           <span className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
             {isSettled ? "Clearing Price" : "Minimum Starting Price"}
           </span>
-          <p className={`font-display text-3xl md:text-4xl ${isSettled ? "text-indigo-400" : isIssuerLayout ? "text-parchment" : "text-oxblood"}`}>
+          <p className={`font-display text-2xl md:text-3xl ${isSettled ? "text-indigo-400" : isIssuerLayout ? "text-parchment" : "text-oxblood"}`}>
             {isSettled && auction.clearingPrice > BigInt(0) && auction.clearingPrice < BigInt("340282366920938463463374607431768211455")
               ? formatScaled(auction.clearingPrice, auction.scale)
               : formatScaled(auction.reservePrice, auction.scale)}{" "}
-            <span className="font-sans text-lg font-normal opacity-70">cUSD</span>
+            <span className="font-sans text-base font-normal opacity-70">cUSD</span>
           </p>
         </div>
-      </div>
 
-      {/* Data Rows */}
-      <div className={`flex flex-col gap-0 border-t pt-4 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
-        <DataRow
-          label="Issuer Wallet"
-          value={shortAddress(auction.issuer)}
-        />
-        <DataRow
-          label="Safe Revenue Treasury"
-          value={shortAddress(auction.safeAddress)}
-        />
-        <DataRow
-          label="Bids Submitted"
-          value={`${auction.bidCount} / 5 Bidders`}
-        />
-        <DataRow
-          label="Privacy Guarantee"
-          value="Hardware TEE Enclave + ERC-7984"
-          border={!isSettled}
-        />
+        <div className={`rounded-[16px] border p-6 ${isIssuerLayout ? "border-hairline-strong bg-black/40" : "border-oxblood/10 bg-rose-50/40"}`}>
+          <span className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
+            Bids Submitted
+          </span>
+          <p className={`font-display text-2xl md:text-3xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
+            {auction.bidCount}{" "}
+            <span className="font-sans text-base font-normal opacity-70">/ 5 Bidders</span>
+          </p>
+        </div>
       </div>
 
       {/* Countdown Strip for Active Auction */}

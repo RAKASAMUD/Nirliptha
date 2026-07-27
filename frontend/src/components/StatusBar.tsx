@@ -47,43 +47,49 @@ export function StatusBar({ current }: Props) {
   }, [current]);
 
   return (
-    <div className="relative flex items-center justify-between">
-      <div className="absolute top-5 right-0 left-0 -z-10 h-px bg-hairline" />
+    <div className="relative w-full py-2">
+      {/* Background connector line from center of 1st circle to 4th circle */}
+      <div className="absolute top-5 left-[12.5%] right-[12.5%] -z-10 h-0.5 bg-hairline-strong/30" />
+      
+      {/* Animated active progress fill line */}
       <div
         ref={fillRef}
-        className="absolute top-5 left-0 -z-10 h-px w-full origin-left scale-x-0 bg-oxblood"
+        className="absolute top-5 left-[12.5%] right-[12.5%] -z-10 h-0.5 origin-left scale-x-0 bg-oxblood shadow-[0_0_8px_rgba(132,0,22,0.6)]"
       />
-      {STAGES.map((label, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <div key={label} className="flex flex-col items-center gap-4 px-4">
-            <div
-              ref={(el) => {
-                circleRefs.current[i] = el;
-              }}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
-                done || active
-                  ? "border-oxblood bg-oxblood"
-                  : "border-hairline-strong bg-surface"
-              }`}
-            >
+      
+      <div className="grid grid-cols-4 w-full">
+        {STAGES.map((label, i) => {
+          const done = i < current;
+          const active = i === current;
+          return (
+            <div key={label} className="flex flex-col items-center gap-3 text-center px-1">
               <div
-                className={`h-2.5 w-2.5 rounded-full ${
-                  done || active ? "bg-white" : "bg-hairline-strong"
+                ref={(el) => {
+                  circleRefs.current[i] = el;
+                }}
+                className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
+                  done || active
+                    ? "border-oxblood bg-oxblood shadow-[0_0_12px_rgba(132,0,22,0.4)]"
+                    : "border-hairline-strong bg-surface"
                 }`}
-              />
+              >
+                <div
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    done || active ? "bg-white" : "bg-hairline-strong/60"
+                  }`}
+                />
+              </div>
+              <span
+                className={`font-body text-[11px] font-medium tracking-wider uppercase leading-tight ${
+                  active ? "text-oxblood font-bold" : done ? "text-parchment font-semibold" : "text-muted/60"
+                }`}
+              >
+                {label}
+              </span>
             </div>
-            <span
-              className={`font-body text-xs font-medium tracking-wider uppercase ${
-                active ? "text-oxblood font-semibold" : done ? "text-parchment" : "text-muted/50"
-              }`}
-            >
-              {label}
-            </span>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -22,4 +22,15 @@ contract CAsset is ERC7984, Ownable {
         Nox.allow(minted, to);
         return minted;
     }
+
+    /// @notice Public testnet faucet minting for demo/testing on Sepolia
+    function faucetMint(
+        externalEuint256 encryptedAmount,
+        bytes calldata inputProof
+    ) external returns (euint256) {
+        euint256 amount = Nox.fromExternal(encryptedAmount, inputProof);
+        euint256 minted = _mint(msg.sender, amount);
+        Nox.allow(minted, msg.sender);
+        return minted;
+    }
 }
