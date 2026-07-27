@@ -27,14 +27,28 @@ export function parseToken(value: string | number, decimals: number): bigint {
  * so the two scales never get confused at a call site.
  */
 export function formatScaled(raw: bigint, scale: bigint): string {
-  const whole = raw / scale;
-  const fraction = raw % scale;
+  // Sentinel check: uint128.max or uint256.max means clearing price is pending / not yet revealed
+  if (raw >= BigInt("340282366920938463463374607431768211455")) {
+    return "Pending / N/A";
+  }
+  if (raw === BigInt(0)) {
+    return "0.00";
+  }
+
+  // Detect whether raw clearing price is stored in 18 decimals (e.g. 1500000000000000000 = 1.5 cUSD)
+  // or in Auction.SCALE units (1500000 = 1.5 cUSD)
+  const effScale = raw > BigInt(10) ** BigInt(14) ? BigInt(10) ** BigInt(18) : scale;
+
+  const whole = raw / effScale;
+  const fraction = raw % effScale;
   if (fraction === BigInt(0)) return whole.toLocaleString("en-US");
-  const scaleDigits = scale.toString().length - 1;
+  
+  const scaleDigits = effScale.toString().length - 1;
   const fractionStr = fraction
     .toString()
     .padStart(scaleDigits, "0")
-    .replace(/0+$/, "");
+    .replace(/0+$/, "")
+    .slice(0, 4); // max 4 decimal places for clean UI
   return `${whole.toLocaleString("en-US")}.${fractionStr}`;
 }
 

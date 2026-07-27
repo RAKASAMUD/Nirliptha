@@ -12,10 +12,11 @@ export type AuctionSummary = {
   reservePrice: bigint;
   deadline: bigint;
   scale: bigint;
+  clearingPrice: bigint;
 };
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as const;
-const SUMMARY_FIELDS_PER_AUCTION = 6;
+const SUMMARY_FIELDS_PER_AUCTION = 7;
 
 // Three dependent reads: auctionCount() -> auctions(0..count-1) -> a
 // per-address summary multicall. Each stage is its own useReadContracts
@@ -56,6 +57,7 @@ export function useAuctionList() {
       { address, abi: AUCTION_ABI, functionName: "reservePrice" as const },
       { address, abi: AUCTION_ABI, functionName: "deadline" as const },
       { address, abi: AUCTION_ABI, functionName: "SCALE" as const },
+      { address, abi: AUCTION_ABI, functionName: "clearingPrice" as const },
     ]),
     query: { enabled: addresses.length > 0, refetchInterval: 15_000 },
   });
@@ -70,6 +72,7 @@ export function useAuctionList() {
       reservePrice: (summaryData?.[base + 3]?.result as bigint) ?? BigInt(0),
       deadline: (summaryData?.[base + 4]?.result as bigint) ?? BigInt(0),
       scale: (summaryData?.[base + 5]?.result as bigint) ?? BigInt(1_000_000),
+      clearingPrice: (summaryData?.[base + 6]?.result as bigint) ?? BigInt(0),
     };
   });
 

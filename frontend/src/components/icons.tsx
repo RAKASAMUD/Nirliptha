@@ -53,15 +53,6 @@ export function ArrowForwardIcon({ className }: IconProps) {
   );
 }
 
-export function CodeIcon({ className }: IconProps) {
-  return (
-    <svg className={className} {...base} aria-hidden="true">
-      <path d="m9 8-4 4 4 4" />
-      <path d="m15 8 4 4-4 4" />
-    </svg>
-  );
-}
-
 export function OpenInNewIcon({ className }: IconProps) {
   return (
     <svg className={className} {...base} aria-hidden="true">

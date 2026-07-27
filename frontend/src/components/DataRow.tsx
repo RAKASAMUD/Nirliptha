@@ -17,10 +17,10 @@ export function DataRow({ label, value, border = true, valueClassName = "" }: Pr
         border ? "border-b border-hairline" : ""
       }`}
     >
-      <span className="font-mono text-xs uppercase tracking-[0.1em] text-muted">
+      <span className="font-body text-xs font-medium uppercase tracking-[0.1em] text-muted">
         {label}
       </span>
-      <span className={`font-mono text-sm text-parchment ${valueClassName}`}>{value}</span>
+      <span className={`font-body text-sm font-semibold text-parchment ${valueClassName}`}>{value}</span>
     </div>
   );
 }

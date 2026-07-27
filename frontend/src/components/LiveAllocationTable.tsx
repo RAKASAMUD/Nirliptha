@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useReadContracts, useWriteContract, usePublicClient, useWalletClient } from "wagmi";
+import { gsap } from "gsap";
 import { AUCTION_ABI } from "@/lib/abis";
 import { AllocationTable, type AllocationRow } from "./AllocationTable";
 import { GrantAuditModal } from "./GrantAuditModal";
@@ -21,6 +22,8 @@ export function LiveAllocationTable({ auctionAddress, bidders }: Props) {
   const [grantedMap, setGrantedMap] = useState<Record<string, boolean>>({});
   const [decryptedMap, setDecryptedMap] = useState<Record<string, bigint>>({});
   const [modalBidder, setModalBidder] = useState<`0x${string}` | null>(null);
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const isRotatingRef = useRef(false);
 
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
@@ -67,19 +70,44 @@ export function LiveAllocationTable({ auctionAddress, bidders }: Props) {
   );
 
   const handleRotate = useCallback(async () => {
-    const hash = await writeContractAsync({
-      address: auctionAddress,
-      abi: AUCTION_ABI,
-      functionName: "rotateHandles",
-    });
-    await publicClient?.waitForTransactionReceipt({ hash });
-    // Previously-granted auditors are blind to the new handles, and this
-    // viewer's own cached plaintext no longer reflects what's on-chain
-    // (the handle it was decrypted from is gone) — reset both, matching
-    // Task 4 Step 6 exactly.
-    setGrantedMap({});
-    setDecryptedMap({});
-    refetch();
+    if (isRotatingRef.current) return; // guard against double-submit during the animated wipe below
+    isRotatingRef.current = true;
+    try {
+      const hash = await writeContractAsync({
+        address: auctionAddress,
+        abi: AUCTION_ABI,
+        functionName: "rotateHandles",
+      });
+      await publicClient?.waitForTransactionReceipt({ hash });
+
+      // Animate the still-on-screen decrypted values/granted badges wiping
+      // out BEFORE clearing them from state, so revoking access is visibly
+      // felt rather than the row just silently swapping back to 🔒. Runs
+      // only after the tx is confirmed, not optimistically before it lands.
+      const targets = tableWrapperRef.current?.querySelectorAll(
+        "[data-decrypted-cell], [data-granted-badge]"
+      );
+      if (targets && targets.length > 0) {
+        await gsap.to(targets, {
+          opacity: 0,
+          filter: "blur(6px)",
+          scale: 0.9,
+          stagger: 0.08,
+          duration: 0.35,
+          ease: "power2.in",
+        });
+      }
+
+      // Previously-granted auditors are blind to the new handles, and this
+      // viewer's own cached plaintext no longer reflects what's on-chain
+      // (the handle it was decrypted from is gone) — reset both, matching
+      // Task 4 Step 6 exactly.
+      setGrantedMap({});
+      setDecryptedMap({});
+      refetch();
+    } finally {
+      isRotatingRef.current = false;
+    }
   }, [auctionAddress, writeContractAsync, publicClient, refetch]);
 
   const rows: AllocationRow[] = bidders.map((bidder) => ({
@@ -90,12 +118,14 @@ export function LiveAllocationTable({ auctionAddress, bidders }: Props) {
 
   return (
     <>
-      <AllocationTable
-        rows={rows}
-        onGrantAudit={(bidder) => setModalBidder(bidder as `0x${string}`)}
-        onDecrypt={handleDecrypt}
-        onRotateHandles={handleRotate}
-      />
+      <div ref={tableWrapperRef}>
+        <AllocationTable
+          rows={rows}
+          onGrantAudit={(bidder) => setModalBidder(bidder as `0x${string}`)}
+          onDecrypt={handleDecrypt}
+          onRotateHandles={handleRotate}
+        />
+      </div>
       {isDecrypting ? (
         <p className="mt-4 font-mono text-xs text-muted">Sign to decrypt — no gas required...</p>
       ) : null}
