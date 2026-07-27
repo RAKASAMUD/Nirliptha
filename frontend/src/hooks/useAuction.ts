@@ -65,7 +65,10 @@ export function useAuction(auctionAddress: `0x${string}`): AuctionState {
       { address: auctionAddress, abi: AUCTION_ABI, functionName: "bids", args: [BigInt(3)] },
       { address: auctionAddress, abi: AUCTION_ABI, functionName: "bids", args: [BigInt(4)] },
     ],
-    query: { refetchInterval: 10_000 },
+    query: {
+      enabled: !!auctionAddress && /^0x[a-fA-F0-9]{40}$/.test(auctionAddress) && auctionAddress !== ZERO_ADDRESS,
+      refetchInterval: 10_000,
+    },
   });
 
   const [
