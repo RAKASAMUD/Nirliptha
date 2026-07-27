@@ -8,12 +8,12 @@
   screen (Investor/Settled).
 */
 :root {
-  --color-charcoal: #25282a; /* page background */
+  --color-charcoal: #000000; /* page background */
   --color-surface: #2c2f31; /* card background */
   --color-oxblood: #840016; /* primary accent: buttons, links, seals */
   --color-oxblood-hover: #a1001b;
-  --color-parchment: #f5f3f0; /* primary text */
-  --color-muted: #8a8d8f; /* secondary/label text */
+  --color-parchment: #ffffff; /* primary text */
+  --color-muted: #ffffff; /* secondary/label text */
   --color-hairline: rgba(245, 243, 240, 0.08); /* subtle borders */
   --color-hairline-strong: rgba(245, 243, 240, 0.16);
 }
@@ -29,8 +29,11 @@
   --color-hairline-strong: var(--color-hairline-strong);
 
   --font-display: var(--font-instrument-serif);
-  --font-body: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
+  --font-body: var(--font-plus-jakarta-sans);
+  --font-mono: var(--font-plus-jakarta-sans);
+  /* Hero headline only: stylized drop-cap + display serif, see Hero.tsx. */
+  --font-words-taken: var(--font-words-taken);
+  --font-copeland: var(--font-copeland);
 
   --spacing-unit: 8px;
   --spacing-gutter: 24px;
@@ -41,13 +44,61 @@
 }
 
 body {
-  background-color: var(--color-charcoal);
   color: var(--color-parchment);
   font-family: var(--font-body), sans-serif;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Default Dark Theme for Landing & Issuer Pages */
+.theme-dark {
+  background: linear-gradient(to bottom left, #45000a 0%, #150004 30%, #000000 65%, #660011 100%) fixed;
+  color: #ffffff;
+}
+
+/* White-to-Red Subtle Gradient Light Theme for Investor Pages */
+.theme-investor-light {
+  background: linear-gradient(to bottom, #ffffff 0%, #fff1f2 35%, #ffe4e6 70%, #fecdd3 100%) fixed !important;
+  color: #1c1917 !important;
 }
 
 /* Utility for the hairline card borders used throughout every screen. */
 .hairline-border {
   border: 1px solid var(--color-hairline);
+}
+
+/* Styled y-axis scrollbar, dark-theme-matched — Firefox via scrollbar-color,
+   WebKit/Chromium/Edge via ::-webkit-scrollbar. */
+html {
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-hairline-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-hairline-strong);
+  border-radius: 999px;
+  border: 2px solid var(--color-charcoal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-oxblood);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
 }
