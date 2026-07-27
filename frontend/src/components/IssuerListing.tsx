@@ -175,7 +175,7 @@ export function IssuerListing() {
             .slice()
             .reverse()
             .map((a) => (
-              <AuctionCard key={a.address} auction={a} href={`/issuer/${a.address}`} />
+              <AuctionCard key={a.address} auction={a} href={`/issuer/${a.address}`} layout="issuer" />
             ))}
         </div>
       )}
