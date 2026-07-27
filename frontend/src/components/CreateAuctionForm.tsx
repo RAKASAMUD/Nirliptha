@@ -7,6 +7,7 @@ import { CONTRACTS } from "@/lib/config";
 import { encryptUint } from "@/lib/nox";
 import { Card } from "./Card";
 import { Button } from "./Button";
+import { getOrFetchWalletClient } from "@/lib/wallet-helper";
 
 import { shortAddress } from "@/lib/format";
 
@@ -149,12 +150,19 @@ export function CreateAuctionForm({ onCreated, onCancel }: Props) {
   }
 
   async function handleStartWizard() {
-    if (!walletClient || !publicClient) {
+    if (!address || !publicClient) {
       setWizardError("Connect your wallet first.");
       setWizardStep("error");
       return;
     }
     setWizardError(null);
+
+    const activeWalletClient = await getOrFetchWalletClient(walletClient, address);
+    if (!activeWalletClient) {
+      setWizardError("Connect your wallet first.");
+      setWizardStep("error");
+      return;
+    }
 
     const quantityRaw = BigInt(Math.round(Number(quantity)));
     const reservePriceRaw = BigInt(Math.round(Number(reservePrice) * 1_000_000));
@@ -194,7 +202,7 @@ export function CreateAuctionForm({ onCreated, onCancel }: Props) {
       // STEP 2: Secure Confidential Assets (Escrow Transfer)
       setFailedAtStep("step2");
       setWizardStep("step2");
-      const { handle, handleProof } = await encryptUint(walletClient, quantityRaw, CONTRACTS.cAsset as `0x${string}`);
+      const { handle, handleProof } = await encryptUint(activeWalletClient, quantityRaw, CONTRACTS.cAsset as `0x${string}`);
 
       const transferTx = await writeContractAsync({
         address: CONTRACTS.cAsset as `0x${string}`,

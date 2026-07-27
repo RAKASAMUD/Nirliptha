@@ -11,6 +11,7 @@ import { TreasuryPayoutCard } from "./TreasuryPayoutCard";
 import { AuthHero } from "./AuthHero";
 import { Card } from "./Card";
 import { shortAddress } from "@/lib/format";
+import { getOrFetchWalletClient } from "@/lib/wallet-helper";
 
 type Props = {
   auctionAddress: `0x${string}`;
@@ -80,7 +81,8 @@ export function IssuerDashboard({ auctionAddress }: Props) {
 
   async function handleReveal() {
     await runAction("Revealing clearing price...", async () => {
-      if (!walletClient) throw new Error("Connect your wallet first.");
+      const activeWallet = await getOrFetchWalletClient(walletClient, address);
+      if (!activeWallet) throw new Error("Connect your wallet first.");
       const clearingPriceHandle = (await publicClient?.readContract({
         address: auctionAddress,
         abi: AUCTION_ABI,
@@ -90,7 +92,7 @@ export function IssuerDashboard({ auctionAddress }: Props) {
       let proof: `0x${string}` | null = null;
       for (let attempt = 0; attempt < 6 && !proof; attempt++) {
         try {
-          const result = await publicDecryptHandle(walletClient, clearingPriceHandle);
+          const result = await publicDecryptHandle(activeWallet, clearingPriceHandle);
           proof = result.proof as `0x${string}`;
         } catch {
           await new Promise((r) => setTimeout(r, 10_000));

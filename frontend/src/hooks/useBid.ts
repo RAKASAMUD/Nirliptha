@@ -11,6 +11,7 @@ import {
 import { AUCTION_ABI, CUSD_ABI } from "@/lib/abis";
 import { CONTRACTS } from "@/lib/config";
 import { encryptUint } from "@/lib/nox";
+import { getOrFetchWalletClient } from "@/lib/wallet-helper";
 
 export type BidRecord = {
   bidder: `0x${string}`;
@@ -99,7 +100,12 @@ export function useBid(auctionAddress: `0x${string}`) {
   // contract call just for setOperator's `until` argument.
   const submitBid = useCallback(
     async (quantityRaw: bigint, priceRaw: bigint, deadline: bigint, onStep?: (step: string) => void) => {
-      if (!walletClient || !publicClient || !address) {
+      if (!publicClient || !address) {
+        throw new Error("Connect your wallet first.");
+      }
+
+      const activeWalletClient = await getOrFetchWalletClient(walletClient, address);
+      if (!activeWalletClient) {
         throw new Error("Connect your wallet first.");
       }
 
@@ -121,9 +127,9 @@ export function useBid(auctionAddress: `0x${string}`) {
         await publicClient.waitForTransactionReceipt({ hash: approveTx });
       }
 
-      onStep?.("Encrypting bid...");
-      const encQ = await encryptUint(walletClient, quantityRaw, auctionAddress);
-      const encP = await encryptUint(walletClient, priceRaw, auctionAddress);
+      onStep?.("Step 2/2: Encrypting & Bidding...");
+      const { handle: qH, handleProof: qP } = await encryptUint(activeWalletClient, quantityRaw, auctionAddress);
+      const { handle: pH, handleProof: pP } = await encryptUint(activeWalletClient, priceRaw, auctionAddress);
 
       onStep?.("Step 2/2: Submitting encrypted bid...");
       const submitTx = await writeContractAsync({
