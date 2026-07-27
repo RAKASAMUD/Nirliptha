@@ -136,7 +136,7 @@ export function useBid(auctionAddress: `0x${string}`) {
         address: auctionAddress,
         abi: AUCTION_ABI,
         functionName: "submitBid",
-        args: [encQ.handle, encQ.handleProof, encP.handle, encP.handleProof],
+        args: [qH, qP, pH, pP],
       });
       await publicClient.waitForTransactionReceipt({ hash: submitTx });
       refetch();
