@@ -8,7 +8,7 @@ type Props = {
   auctionAddress: `0x${string}`;
   safeAddress: `0x${string}`;
   isIssuer: boolean;
-  onWithdraw: () => Promise<`0x${string}`>;
+  onWithdraw: () => Promise<`0x${string}` | void>;
   isLoading: boolean;
   error: string | null;
   clearingPrice: bigint;

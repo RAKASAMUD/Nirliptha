@@ -108,14 +108,17 @@ export function IssuerDashboard({ auctionAddress }: Props) {
   }
 
   async function handleWithdraw() {
+    let txHash: `0x${string}` | undefined;
     await runAction("Withdrawing to Safe...", async () => {
       const hash = await writeContractAsync({
         address: auctionAddress,
         abi: AUCTION_ABI,
         functionName: "withdrawToSafe",
       });
+      txHash = hash;
       await publicClient?.waitForTransactionReceipt({ hash });
     });
+    return txHash;
   }
 
   const deadlinePassed = Number(auction.deadline) > 0 && now > Number(auction.deadline);
