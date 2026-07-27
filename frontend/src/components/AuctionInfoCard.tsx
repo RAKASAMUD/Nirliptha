@@ -1,9 +1,8 @@
 import { Card } from "./Card";
 import { DataRow } from "./DataRow";
-import { StatusPill } from "./StatusPill";
 import { EncryptedValue } from "./EncryptedValue";
 import { Countdown } from "./Countdown";
-import { formatScaled, shortAddress } from "@/lib/format";
+import { formatScaled, shortAddress, etherscanTx } from "@/lib/format";
 import type { useAuction } from "@/hooks/useAuction";
 
 type Props = {
@@ -14,45 +13,31 @@ type Props = {
   isIssuer?: boolean;
 };
 
-const STATUS_LABEL: Record<0 | 1 | 2 | 3, string> = {
-  0: "Awaiting escrow",
-  1: "Open for bids",
-  2: "Revealing clearing price",
-  3: "Settled",
-};
-
-// The one shared info card used by both the issuer dashboard and the
-// investor sidebar (PLAN-FE-frontend.md Task 3: "shared:
-// quantity/reserve/deadline/bidders"). Content shifts by `status`, not by a
-// separate component per state — action buttons (Finalize, BidForm, etc.)
-// are composed by the calling page around this card, not inside it.
-// quantity/reservePrice/clearingPrice are Auction.sol's own public fields,
-// scaled by the contract's SCALE constant — NOT by cUSD/cAsset's decimals()
-// (which turned out to be 18, the unmodified ERC7984Base default; see the
-// long comment in hooks/useAuction.ts for how this was discovered).
 export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", action }: Props) {
   const isSettled = auction.status === 3;
+  const isIssuerLayout = layout === "issuer";
+  const displayAddress = auctionAddress || auction.safeAddress;
 
   const renderStatusBadge = () => {
     switch (auction.status) {
       case 1:
         return (
-          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 font-body text-xs font-semibold tracking-wider text-emerald-400 uppercase shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-1.5 font-body text-xs font-semibold tracking-wider text-emerald-400 uppercase shadow-[0_0_15px_rgba(16,185,129,0.2)]">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            Open for Bids
+            Bidding Live
           </span>
         );
       case 2:
         return (
-          <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 font-body text-xs font-semibold tracking-wider text-amber-400 uppercase">
-            <span className="h-2 w-2 rounded-full bg-amber-400" />
-            Revealing Clearing Price
+          <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-4 py-1.5 font-body text-xs font-semibold tracking-wider text-amber-400 uppercase">
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            Resolution Pending
           </span>
         );
       case 3:
         return (
-          <span className="inline-flex items-center gap-2 rounded-full border border-oxblood/40 bg-oxblood/20 px-4 py-1.5 font-body text-xs font-semibold tracking-wider text-parchment uppercase">
-            Settled
+          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/40 bg-indigo-500/10 px-4 py-1.5 font-body text-xs font-semibold tracking-wider text-indigo-300 uppercase">
+            ✓ Auction Settled
           </span>
         );
       default:
@@ -65,74 +50,104 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
   };
 
   return (
-    <Card className={layout === "investor" ? "p-8 shadow-xl" : "p-8 md:p-10 shadow-2xl"}>
-      <div className="mb-8 flex items-center justify-between border-b border-hairline pb-6">
+    <Card className={isIssuerLayout ? "p-8 md:p-10 shadow-2xl bg-surface border-hairline-strong" : "p-8 md:p-10 shadow-xl bg-white/95 border-oxblood/15"}>
+      {/* Top Header Row */}
+      <div className={`mb-8 flex flex-wrap items-center justify-between gap-4 border-b pb-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
         <div>
-          <span className="font-body text-xs font-medium tracking-widest text-muted uppercase">
-            Auction Details
+          <span className={`inline-block mb-1.5 rounded-full border px-3 py-0.5 font-body text-[10px] font-bold uppercase tracking-wider ${
+            isIssuerLayout ? "border-oxblood/40 bg-oxblood/20 text-parchment" : "border-oxblood/20 bg-oxblood/10 text-oxblood"
+          }`}>
+            Private Asset Offering
           </span>
-          {auctionAddress ? (
-            <p className="font-mono text-xs text-parchment mt-0.5">{shortAddress(auctionAddress)}</p>
+          <h2 className={`font-display text-3xl md:text-4xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
+            Asset Offering <span className="font-mono text-xl font-normal opacity-70">#{shortAddress(displayAddress).slice(-4)}</span>
+          </h2>
+          {displayAddress ? (
+            <a
+              href={etherscanTx(displayAddress)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex items-center gap-1.5 font-mono text-xs text-muted hover:text-oxblood transition-colors"
+            >
+              <span>Contract: {shortAddress(displayAddress)}</span>
+              <span>↗</span>
+            </a>
           ) : null}
         </div>
         {renderStatusBadge()}
       </div>
 
-      <div className="mb-8">
-        <span className="font-body text-xs font-medium uppercase tracking-[0.1em] text-muted">
-          Quantity For Sale
-        </span>
-        <p className="font-display text-4xl text-parchment md:text-5xl mt-1">
-          {auction.quantity.toLocaleString("en-US")}{" "}
-          <span className="font-sans text-xl font-normal text-muted">cASSET</span>
-        </p>
-      </div>
-
-      {isSettled ? (
-        <div className="mb-8 rounded-[14px] border border-oxblood/30 bg-oxblood/10 p-6">
-          <p className="mb-1 font-body text-xs font-medium uppercase tracking-[0.1em] text-muted">
-            Clearing Price
-          </p>
-          <p className="font-display text-4xl text-parchment">
-            {auction.clearingPrice >= BigInt("340282366920938463463374607431768211455") || auction.clearingPrice === BigInt(0)
-              ? formatScaled(auction.reservePrice, auction.scale)
-              : formatScaled(auction.clearingPrice, auction.scale)}{" "}
-            <span className="text-xl text-muted">cUSD</span>
+      {/* Main KPI Highlight Blocks */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className={`rounded-[16px] border p-6 ${isIssuerLayout ? "border-hairline-strong bg-black/40" : "border-oxblood/10 bg-rose-50/40"}`}>
+          <span className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
+            Quantity For Sale
+          </span>
+          <p className={`font-display text-3xl md:text-4xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
+            {auction.quantity.toLocaleString("en-US")}{" "}
+            <span className="font-sans text-lg font-normal opacity-70">cASSET</span>
           </p>
         </div>
-      ) : null}
 
-      <div className="flex flex-col gap-0 border-t border-hairline pt-4">
-        <DataRow
-          label="Min Price"
-          value={`${formatScaled(auction.reservePrice, auction.scale)} cUSD`}
-        />
-        <DataRow label="Bids submitted" value={`${auction.bidCount} / 5`} border={!isSettled} />
-        {isSettled ? (
-          <DataRow label="Settled to treasury" value={shortAddress(auction.safeAddress)} border={false} />
-        ) : null}
+        <div className={`rounded-[16px] border p-6 ${isIssuerLayout ? "border-hairline-strong bg-black/40" : "border-oxblood/10 bg-rose-50/40"}`}>
+          <span className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
+            {isSettled ? "Clearing Price" : "Minimum Starting Price"}
+          </span>
+          <p className={`font-display text-3xl md:text-4xl ${isSettled ? "text-indigo-400" : isIssuerLayout ? "text-parchment" : "text-oxblood"}`}>
+            {isSettled && auction.clearingPrice > BigInt(0) && auction.clearingPrice < BigInt("340282366920938463463374607431768211455")
+              ? formatScaled(auction.clearingPrice, auction.scale)
+              : formatScaled(auction.reservePrice, auction.scale)}{" "}
+            <span className="font-sans text-lg font-normal opacity-70">cUSD</span>
+          </p>
+        </div>
       </div>
 
+      {/* Data Rows */}
+      <div className={`flex flex-col gap-0 border-t pt-4 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
+        <DataRow
+          label="Issuer Wallet"
+          value={shortAddress(auction.issuer)}
+        />
+        <DataRow
+          label="Safe Revenue Treasury"
+          value={shortAddress(auction.safeAddress)}
+        />
+        <DataRow
+          label="Bids Submitted"
+          value={`${auction.bidCount} / 5 Bidders`}
+        />
+        <DataRow
+          label="Privacy Guarantee"
+          value="Hardware TEE Enclave + ERC-7984"
+          border={!isSettled}
+        />
+      </div>
+
+      {/* Countdown Strip for Active Auction */}
       {auction.status === 1 ? (
-        <div className="mt-8 rounded-[16px] border border-hairline-strong bg-black/40 p-6 text-center shadow-inner">
-          <p className="mb-3 font-body text-xs font-medium uppercase tracking-[0.1em] text-muted">
-            {layout === "investor" ? "Closes in" : "Time remaining"}
+        <div className={`mt-8 rounded-[16px] border p-6 text-center shadow-inner ${isIssuerLayout ? "border-hairline-strong bg-black/50" : "border-oxblood/15 bg-white"}`}>
+          <p className={`mb-3 font-body text-xs font-semibold uppercase tracking-widest ${isIssuerLayout ? "text-muted" : "text-oxblood"}`}>
+            {isIssuerLayout ? "Offering Closes In" : "Bidding Period Closes In"}
           </p>
           <Countdown
-            deadlineTs={Number(auction.deadline)}
-            className="font-body text-4xl font-bold tracking-tight text-parchment"
+            deadline={auction.deadline}
+            className={`font-body text-4xl font-bold tracking-tight ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}
           />
         </div>
       ) : null}
 
-      {auction.status === 3 ? (
-        <div className="mt-8 border-t border-hairline pt-6">
-          <p className="mb-2 font-body text-xs font-medium uppercase tracking-[0.1em] text-muted">Unsold Balance</p>
+      {/* Unsold Balance for Settled Auction */}
+      {isSettled ? (
+        <div className={`mt-8 border-t pt-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
+          <p className={`mb-2 font-body text-xs font-semibold uppercase tracking-widest ${isIssuerLayout ? "text-muted" : "text-charcoal/70"}`}>
+            Unsold Asset Balance
+          </p>
           <EncryptedValue />
         </div>
       ) : null}
 
-      {action ? <div className="mt-8 border-t border-hairline pt-6">{action}</div> : null}
+      {/* Embedded Action Panel */}
+      {action ? <div className={`mt-8 border-t pt-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>{action}</div> : null}
     </Card>
   );
 }
