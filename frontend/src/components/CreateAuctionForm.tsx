@@ -204,13 +204,33 @@ export function CreateAuctionForm({ onCreated, onCancel }: Props) {
       setWizardStep("step2");
       const { handle, handleProof } = await encryptUint(activeWalletClient, quantityRaw, CONTRACTS.cAsset as `0x${string}`);
 
-      const transferTx = await writeContractAsync({
-        address: CONTRACTS.cAsset as `0x${string}`,
-        abi: CASSET_ABI,
-        functionName: "confidentialTransfer",
-        args: [currentAuctionAddr, handle, handleProof],
-      });
-      await publicClient.waitForTransactionReceipt({ hash: transferTx });
+      try {
+        const transferTx = await writeContractAsync({
+          address: CONTRACTS.cAsset as `0x${string}`,
+          abi: CASSET_ABI,
+          functionName: "confidentialTransfer",
+          args: [currentAuctionAddr, handle, handleProof],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: transferTx });
+      } catch (err) {
+        // If issuer wallet has insufficient cAsset balance, auto-mint cAsset to issuer first then transfer
+        const mintTx = await writeContractAsync({
+          address: CONTRACTS.cAsset as `0x${string}`,
+          abi: CASSET_ABI,
+          functionName: "faucetMint",
+          args: [handle, handleProof],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: mintTx });
+
+        const { handle: h2, handleProof: p2 } = await encryptUint(activeWalletClient, quantityRaw, CONTRACTS.cAsset as `0x${string}`);
+        const transferTx2 = await writeContractAsync({
+          address: CONTRACTS.cAsset as `0x${string}`,
+          abi: CASSET_ABI,
+          functionName: "confidentialTransfer",
+          args: [currentAuctionAddr, h2, p2],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: transferTx2 });
+      }
 
       // STEP 3: Activate Auction (Confirm Escrow)
       setFailedAtStep("step3");
