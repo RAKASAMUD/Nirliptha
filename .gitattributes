@@ -1,0 +1,4 @@
+# Ignore generated graphify HTML visualization from GitHub language statistics calculation
+graphify-out/** linguist-generated=true
+graphify-out/graph.html linguist-generated=true
+graphify-out/graph.html linguist-vendored=true
