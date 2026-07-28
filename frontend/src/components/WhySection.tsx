@@ -8,7 +8,7 @@ const POINTS = [
   {
     n: "01",
     title: "Before settlement",
-    body: "Your bid remains hidden—even from the auction operator.",
+    body: "Your bid remains hidden even from the auction operator.",
   },
   {
     n: "02",
