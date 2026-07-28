@@ -51,79 +51,87 @@ export function IssuerWalletPanel() {
   return (
     <div className="flex flex-col gap-8 font-body animate-in fade-in duration-300">
       <div>
-        <span className="font-mono text-xs font-bold uppercase tracking-wider text-muted/70 block mb-1">
-          Issuer Console &middot; Balances
-        </span>
-        <h2 className="font-display text-3xl md:text-4xl text-parchment">
-          Issuer Wallet &amp; Treasury Balances
+        <h2 className="font-display text-4xl md:text-5xl text-parchment font-bold tracking-tight">
+          Wallet
         </h2>
-        <p className="mt-1 text-xs md:text-sm text-muted max-w-xl leading-relaxed">
-          Monitor your Sepolia testnet gas ETH and confidential cUSD settlement proceeds.
+        <p className="mt-1 text-sm md:text-base text-muted max-w-xl leading-relaxed">
+          Everything you need to manage auctions.
         </p>
       </div>
 
-      {/* ── BALANCE CARDS GRID (2 COLUMNS: ETH & cUSD) ─────────── */}
+      {/* ── STRIPE-LIKE BALANCE CARDS (NETWORK & SETTLEMENT) ─────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* CARD 1: SEPOLIA ETH (GAS BALANCE) */}
-        <Card className="p-6 flex flex-col justify-between border-hairline-strong bg-black/40">
+        {/* CARD 1: SEPOLIA ETH (NETWORK BALANCE) */}
+        <Card className="p-6 flex flex-col justify-between border-hairline-strong bg-surface/90 hover:border-parchment/30 transition-all shadow-sm">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-muted/70 uppercase tracking-wider">
-                Gas Currency (Sepolia ETH)
+              <span className="text-xs font-bold uppercase tracking-wider text-muted/70">
+                Network Balance
               </span>
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-500/10 text-amber-400 font-bold text-xs">
                 Ξ
               </div>
             </div>
-            <div className="font-display text-3xl text-parchment mb-1">
+
+            <h3 className="font-body text-sm font-semibold text-muted mb-1">
+              Sepolia ETH
+            </h3>
+
+            <div className="font-display text-4xl text-parchment mb-2 font-bold">
               {isEthLoading ? (
                 <span className="animate-pulse text-muted">Loading...</span>
               ) : ethBalance ? (
-                `${parseFloat(formatUnits(ethBalance.value, ethBalance.decimals)).toFixed(4)} ${ethBalance.symbol}`
+                `Ξ ${parseFloat(formatUnits(ethBalance.value, ethBalance.decimals)).toFixed(4)}`
               ) : (
-                "0.0000 ETH"
+                "Ξ 0.0000"
               )}
             </div>
-            <p className="text-xs text-muted/80 leading-relaxed mt-2">
-              Sepolia ETH is required to deploy auctions, finalize bidding, and withdraw proceeds.
+
+            <p className="text-xs text-muted/80 leading-relaxed">
+              Used to pay transaction fees on Sepolia.
             </p>
           </div>
 
           <div className="mt-6 pt-4 border-t border-hairline flex items-center justify-between text-xs">
-            <span className="text-muted/60">Network: Sepolia</span>
+            <span className="text-muted/60">Network: <strong className="text-parchment">Sepolia</strong></span>
             <a
               href="https://sepoliafaucet.com"
               target="_blank"
               rel="noreferrer"
-              className="text-parchment font-semibold hover:underline flex items-center gap-1"
+              className="text-parchment font-semibold hover:underline inline-flex items-center gap-1"
             >
-              Get Gas ETH ↗
+              Get Test ETH ↗
             </a>
           </div>
         </Card>
 
-        {/* CARD 2: CONFIDENTIAL cUSD (ISSUER REVENUE) */}
-        <Card className="p-6 flex flex-col justify-between border-oxblood/30 bg-oxblood/10">
+        {/* CARD 2: CONFIDENTIAL cUSD (SETTLEMENT BALANCE) */}
+        <Card className="p-6 flex flex-col justify-between border-oxblood/30 bg-oxblood/10 hover:border-oxblood/50 transition-all shadow-sm">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-semibold text-oxblood uppercase tracking-wider">
-                Confidential cUSD Revenue
+              <span className="text-xs font-bold uppercase tracking-wider text-oxblood">
+                Settlement Balance
               </span>
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-oxblood/20 text-parchment font-bold text-xs">
                 $
               </div>
             </div>
 
-            <div className="font-display text-3xl text-parchment mb-1">
+            <h3 className="font-body text-sm font-semibold text-muted mb-1">
+              Confidential cUSD
+            </h3>
+
+            <div className="font-display text-4xl text-parchment mb-2 font-bold">
               {decryptedCusd !== null ? (
                 `${decryptedCusd} cUSD`
               ) : (
-                <span className="text-xl text-muted italic font-sans font-normal">Encrypted (ERC7984)</span>
+                <span className="text-2xl text-muted italic font-sans font-normal">Encrypted (ERC7984)</span>
               )}
             </div>
-            <p className="text-xs text-muted/80 leading-relaxed mt-2">
-              Confidential USD balance held in your issuer wallet. Protected by Nox TEE protocol.
+
+            <p className="text-xs text-muted/80 leading-relaxed">
+              Available settlement proceeds. Revenue from completed auctions, ready to withdraw.
             </p>
           </div>
 
