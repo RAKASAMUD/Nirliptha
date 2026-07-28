@@ -17,7 +17,7 @@ export function AuctionCard({ auction, href, showIssuer = false, layout = "inves
   const isSettled = auction.status === 3;
   const isIssuerLayout = layout === "issuer";
 
-  const [offeringTitle, setOfferingTitle] = useState("Asset Offering");
+  const [offeringTitle, setOfferingTitle] = useState(() => getOfferingTitle(auction.address));
 
   useEffect(() => {
     setOfferingTitle(getOfferingTitle(auction.address));

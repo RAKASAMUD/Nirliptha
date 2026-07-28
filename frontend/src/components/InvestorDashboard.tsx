@@ -37,7 +37,7 @@ export function InvestorDashboard({ auctionAddress }: Props) {
   const { decrypt, isDecrypting, error: decryptError } = useDecrypt();
   const publicClient = usePublicClient();
 
-  const [offeringTitle, setOfferingTitle] = useState("Asset Offering");
+  const [offeringTitle, setOfferingTitle] = useState(() => getOfferingTitle(auctionAddress));
 
   useEffect(() => {
     if (!auctionAddress) return;

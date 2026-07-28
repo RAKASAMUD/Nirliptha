@@ -21,7 +21,7 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
   const isIssuerLayout = layout === "issuer";
   const displayAddress = auctionAddress || auction.safeAddress;
 
-  const [offeringTitle, setOfferingTitle] = useState("Asset Offering");
+  const [offeringTitle, setOfferingTitle] = useState(() => getOfferingTitle(displayAddress));
 
   useEffect(() => {
     if (!displayAddress) return;
