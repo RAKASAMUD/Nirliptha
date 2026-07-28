@@ -1,6 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const POINTS = [
   {
@@ -20,58 +22,60 @@ const POINTS = [
   },
 ];
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring" as const, stiffness: 300, damping: 24 },
-  },
-};
-
-// 'use client' — whileInView + the stagger timeline need the browser.
-// staggerChildren=1 (1s between each card) per request; each card's title
-// (the "penekanan" word — Before/After settlement, Whenever required) is
-// set in Copeland, same emphasis-font pattern as Hero's "Decisions"/
-// "Confidence", contrasted against the plain-body-font description below it.
-//
-// This section inverts the site's usual dark theme (white background, dark
-// text) as a deliberate contrast break — --color-muted is white globally
-// (design decision made earlier), so body copy here needs an explicit dark
-// gray instead of the shared token, and the hairline divider/border needs a
-// dark variant too (the global --color-hairline tokens are tuned for light
-// text on dark backgrounds and are nearly invisible on white).
 export function WhySection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    const ctx = gsap.context(() => {
+      const items = gsap.utils.toArray<HTMLElement>(".why-point-card");
+
+      items.forEach((item, index) => {
+        gsap.fromTo(
+          item,
+          { opacity: 0, y: 60, scale: 0.95 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: item,
+              start: "top 85%",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      });
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="mx-auto max-w-(--container-max-width) border-y border-black/10 bg-white px-margin-mobile py-section-gap md:px-margin-desktop">
+    <section ref={containerRef} className="mx-auto max-w-(--container-max-width) border-y border-black/10 bg-white px-margin-mobile py-section-gap md:px-margin-desktop">
       <div className="mb-12 flex justify-center text-center">
         <h2 className="max-w-2xl font-display text-3xl text-charcoal md:text-4xl">
           Privacy from start to finish
         </h2>
       </div>
       <div className="mb-12 h-px w-full bg-black/10" />
-      <motion.div
-        className="grid grid-cols-1 gap-12 md:grid-cols-3"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
+
+      <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
         {POINTS.map((point) => (
-          <motion.div key={point.n} variants={itemVariants} className="flex flex-col gap-4">
-            <span className="font-mono text-xs font-medium text-oxblood/60">{point.n}</span>
+          <div
+            key={point.n}
+            className="why-point-card flex flex-col gap-4 p-6 rounded-2xl border border-black/5 bg-neutral-50/50 shadow-xs transition-all hover:shadow-md hover:border-oxblood/20"
+          >
+            <span className="font-mono text-xs font-bold text-oxblood">{point.n}</span>
             <h4 className="font-copeland text-2xl text-charcoal">{point.title}</h4>
-            <p className="font-body text-neutral-600">{point.body}</p>
-          </motion.div>
+            <p className="font-body text-neutral-600 text-sm leading-relaxed">{point.body}</p>
+          </div>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 }
