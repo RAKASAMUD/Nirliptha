@@ -32,24 +32,28 @@ export function WhySection() {
     const ctx = gsap.context(() => {
       const items = gsap.utils.toArray<HTMLElement>(".why-point-card");
 
-      items.forEach((item, index) => {
-        gsap.fromTo(
-          item,
-          { opacity: 0, y: 60, scale: 0.95 },
-          {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            duration: 0.8,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: item,
-              start: "top 85%",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
+      // ScrollTrigger Timeline with scrub: 0.8
+      // Spreads out item animations along scroll progress so user MUST scroll down to reveal 01 -> 02 -> 03 sequentially
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 75%",
+          end: "bottom 60%",
+          scrub: 0.8,
+        },
       });
+
+      tl.fromTo(
+        items,
+        { opacity: 0, y: 100, scale: 0.88 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          stagger: 0.6,
+          ease: "power2.out",
+        }
+      );
     }, containerRef);
 
     return () => ctx.revert();
