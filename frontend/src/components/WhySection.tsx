@@ -24,7 +24,6 @@ const POINTS = [
 
 export function WhySection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -34,45 +33,35 @@ export function WhySection() {
       const items = gsap.utils.toArray<HTMLElement>(".why-point-card");
       if (items.length === 0) return;
 
-      // PINNED SCROLLTRIGGER TIMELINE WITH 300% SCROLL DISTANCE
+      // Set initial hidden state with 3D offset and blur
+      gsap.set(items, { opacity: 0, y: 80, scale: 0.88, filter: "blur(8px)" });
+
+      // Clean unpinned GSAP ScrollTrigger timeline — 100% immune to React removeChild DOM errors
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: triggerRef.current,
-          start: "center center", // Pins when section center is vertically aligned in middle of screen
-          end: "+=300%", // Requires 3x screen height scroll to reveal all 3 cards!
-          pin: true,
-          pinSpacing: true, // Prevents next section from overlapping!
+          trigger: containerRef.current,
+          start: "top 70%",
+          end: "bottom 60%",
           scrub: 1,
-          anticipatePin: 1,
         },
       });
 
-      // Initially hide all 3 items with blur & vertical offset
-      gsap.set(items, { opacity: 0, y: 140, scale: 0.85, filter: "blur(8px)" });
-
-      // Sequentially animate each card into full view as user scrolls
-      items.forEach((item, index) => {
-        tl.to(
-          item,
-          {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            filter: "blur(0px)",
-            duration: 1,
-            ease: "power3.out",
-          },
-          index * 1.2
-        );
+      tl.to(items, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        filter: "blur(0px)",
+        stagger: 0.5,
+        ease: "power2.out",
       });
-    }, triggerRef);
+    }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div ref={triggerRef} className="w-full bg-white border-y border-black/10 overflow-hidden">
-      <section ref={containerRef} className="mx-auto max-w-(--container-max-width) px-margin-mobile py-20 md:px-margin-desktop min-h-screen flex flex-col justify-center">
+    <div className="w-full bg-white border-y border-black/10">
+      <section ref={containerRef} className="mx-auto max-w-(--container-max-width) px-margin-mobile py-24 md:px-margin-desktop">
         <div className="mb-12 flex justify-center text-center">
           <div>
             <span className="font-mono text-xs font-bold text-oxblood uppercase tracking-widest block mb-2">
