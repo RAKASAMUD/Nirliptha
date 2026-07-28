@@ -8,6 +8,8 @@ import { AuctionCard } from "./AuctionCard";
 export function InvestorListing() {
   const { auctions, isLoading } = useAuctionList();
   const [activeTab, setActiveTab] = useState<"all" | "live" | "pending" | "settled">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   const liveAuctions = auctions.filter((a) => a.status === 1);
   const pendingAuctions = auctions.filter((a) => a.status === 2);
@@ -19,6 +21,16 @@ export function InvestorListing() {
     if (activeTab === "settled") return a.status === 3;
     return true;
   });
+
+  const reversedAuctions = filteredAuctions.slice().reverse();
+  const totalPages = Math.ceil(reversedAuctions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedAuctions = reversedAuctions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handleTabChange = (tab: "all" | "live" | "pending" | "settled") => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="mx-auto max-w-(--container-max-width) px-margin-mobile md:px-margin-desktop">
@@ -187,7 +199,7 @@ export function InvestorListing() {
           <div className="flex flex-wrap items-center gap-1.5 rounded-full border border-oxblood/15 bg-white/80 p-1.5 backdrop-blur-md shadow-xs font-body text-xs font-semibold">
             <button
               type="button"
-              onClick={() => setActiveTab("all")}
+              onClick={() => handleTabChange("all")}
               className={`rounded-full px-4 py-1.5 transition-all cursor-pointer ${
                 activeTab === "all"
                   ? "bg-oxblood text-white shadow-xs"
@@ -199,7 +211,7 @@ export function InvestorListing() {
 
             <button
               type="button"
-              onClick={() => setActiveTab("live")}
+              onClick={() => handleTabChange("live")}
               className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 transition-all cursor-pointer ${
                 activeTab === "live"
                   ? "bg-emerald-600 text-white shadow-xs"
@@ -212,7 +224,7 @@ export function InvestorListing() {
 
             <button
               type="button"
-              onClick={() => setActiveTab("pending")}
+              onClick={() => handleTabChange("pending")}
               className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 transition-all cursor-pointer ${
                 activeTab === "pending"
                   ? "bg-amber-600 text-white shadow-xs"
@@ -224,7 +236,7 @@ export function InvestorListing() {
 
             <button
               type="button"
-              onClick={() => setActiveTab("settled")}
+              onClick={() => handleTabChange("settled")}
               className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 transition-all cursor-pointer ${
                 activeTab === "settled"
                   ? "bg-indigo-900 text-white shadow-xs"
@@ -248,14 +260,56 @@ export function InvestorListing() {
             <p className="text-xs text-charcoal/70 mt-1">Try switching to another tab filter above.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {filteredAuctions
-              .slice()
-              .reverse()
-              .map((a) => (
+          <>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {paginatedAuctions.map((a) => (
                 <AuctionCard key={a.address} auction={a} href={`/investor/${a.address}`} showIssuer />
               ))}
-          </div>
+            </div>
+
+            {/* Pagination Carousel Controls (1, 2, 3...) */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-oxblood/10 font-body text-xs">
+                <div className="text-charcoal/70">
+                  Showing <span className="font-bold text-charcoal">{startIndex + 1}</span>–
+                  <span className="font-bold text-charcoal">{Math.min(startIndex + ITEMS_PER_PAGE, reversedAuctions.length)}</span> of{" "}
+                  <span className="font-bold text-charcoal">{reversedAuctions.length}</span> offerings
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="rounded-lg border border-oxblood/20 bg-white px-3 py-1.5 text-xs font-semibold text-oxblood shadow-xs hover:bg-oxblood/10 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all"
+                  >
+                    &larr; Prev
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`h-8 w-8 rounded-lg border font-mono text-xs font-bold transition-all cursor-pointer ${
+                        currentPage === pageNum
+                          ? "border-oxblood bg-oxblood text-white shadow-xs"
+                          : "border-oxblood/20 bg-white text-charcoal hover:bg-rose-50/50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="rounded-lg border border-oxblood/20 bg-white px-3 py-1.5 text-xs font-semibold text-oxblood shadow-xs hover:bg-oxblood/10 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all"
+                  >
+                    Next &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

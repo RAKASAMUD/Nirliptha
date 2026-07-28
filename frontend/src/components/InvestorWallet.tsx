@@ -29,6 +29,10 @@ export function InvestorWallet() {
   const [decryptedCusd, setDecryptedCusd] = useState<string | null>(null);
   const [decryptedCasset, setDecryptedCasset] = useState<string | null>(null);
 
+  // Portfolio Pagination State (max 6 items per page)
+  const [portfolioPage, setPortfolioPage] = useState(1);
+  const PORTFOLIO_PER_PAGE = 6;
+
   // Swap Widget State
   const [ethInput, setEthInput] = useState<string>("0.05");
   const [isSwapping, setIsSwapping] = useState<boolean>(false);
@@ -460,56 +464,104 @@ export function InvestorWallet() {
             <p className="font-body text-xs text-charcoal/60 mt-1">Participate in live auction offerings to acquire confidential RWA tokens.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {auctions.map((a) => {
-              const title = getOfferingTitle(a.address);
-              return (
-                <div
-                  key={a.address}
-                  className="rounded-2xl border border-indigo-500/15 bg-gradient-to-br from-white to-indigo-50/30 p-5 flex flex-col justify-between shadow-xs"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-0.5 text-[11px] font-bold text-emerald-700">
-                        ✓ Claimed &amp; Holding
-                      </span>
-                      <span className="font-mono text-[11px] text-charcoal/50">
-                        #{shortAddress(a.address)}
-                      </span>
-                    </div>
-
-                    <h3 className="font-display text-xl text-charcoal font-bold mb-3">
-                      {title}
-                    </h3>
-
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-indigo-500/10">
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {auctions
+                .slice((portfolioPage - 1) * PORTFOLIO_PER_PAGE, portfolioPage * PORTFOLIO_PER_PAGE)
+                .map((a) => {
+                  const title = getOfferingTitle(a.address);
+                  return (
+                    <div
+                      key={a.address}
+                      className="rounded-2xl border border-indigo-500/15 bg-gradient-to-br from-white to-indigo-50/30 p-5 flex flex-col justify-between shadow-xs"
+                    >
                       <div>
-                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
-                          Holding Amount
-                        </span>
-                        <span className="font-display text-lg text-indigo-700 font-bold">
-                          {a.quantity.toLocaleString("en-US")} <span className="font-sans text-xs font-normal text-charcoal/60">cASSET</span>
-                        </span>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-0.5 text-[11px] font-bold text-emerald-700">
+                            ✓ Claimed &amp; Holding
+                          </span>
+                          <span className="font-mono text-[11px] text-charcoal/50">
+                            #{shortAddress(a.address)}
+                          </span>
+                        </div>
+
+                        <h3 className="font-display text-xl text-charcoal font-bold mb-3">
+                          {title}
+                        </h3>
+
+                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-indigo-500/10">
+                          <div>
+                            <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
+                              Holding Amount
+                            </span>
+                            <span className="font-display text-lg text-indigo-700 font-bold">
+                              {a.quantity.toLocaleString("en-US")} <span className="font-sans text-xs font-normal text-charcoal/60">cASSET</span>
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
+                              Acquisition Price
+                            </span>
+                            <span className="font-display text-lg text-oxblood font-bold">
+                              {formatScaled(a.reservePrice, a.scale)} <span className="font-sans text-xs font-normal text-charcoal/60">cUSD</span>
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
-                          Acquisition Price
-                        </span>
-                        <span className="font-display text-lg text-oxblood font-bold">
-                          {formatScaled(a.reservePrice, a.scale)} <span className="font-sans text-xs font-normal text-charcoal/60">cUSD</span>
-                        </span>
+
+                      <div className="mt-4 pt-3 border-t border-indigo-500/10 flex items-center justify-between text-[11px] text-charcoal/60 font-medium">
+                        <span>Token: <strong className="text-indigo-700">ERC7984 Confidential</strong></span>
+                        <span className="text-emerald-700 font-bold">Encrypted Balance ✓</span>
                       </div>
                     </div>
-                  </div>
+                  );
+                })}
+            </div>
 
-                  <div className="mt-4 pt-3 border-t border-indigo-500/10 flex items-center justify-between text-[11px] text-charcoal/60 font-medium">
-                    <span>Token: <strong className="text-indigo-700">ERC7984 Confidential</strong></span>
-                    <span className="text-emerald-700 font-bold">Encrypted Balance ✓</span>
-                  </div>
+            {/* Pagination Carousel Controls (1, 2, 3...) */}
+            {Math.ceil(auctions.length / PORTFOLIO_PER_PAGE) > 1 && (
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-indigo-500/10 font-body text-xs">
+                <div className="text-charcoal/70">
+                  Showing <span className="font-bold text-charcoal">{(portfolioPage - 1) * PORTFOLIO_PER_PAGE + 1}</span>–
+                  <span className="font-bold text-charcoal">{Math.min(portfolioPage * PORTFOLIO_PER_PAGE, auctions.length)}</span> of{" "}
+                  <span className="font-bold text-charcoal">{auctions.length}</span> asset holdings
                 </div>
-              );
-            })}
-          </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setPortfolioPage((p) => Math.max(1, p - 1))}
+                    disabled={portfolioPage === 1}
+                    className="rounded-lg border border-indigo-500/20 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-xs hover:bg-indigo-50 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all"
+                  >
+                    &larr; Prev
+                  </button>
+
+                  {Array.from({ length: Math.ceil(auctions.length / PORTFOLIO_PER_PAGE) }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPortfolioPage(pageNum)}
+                      className={`h-8 w-8 rounded-lg border font-mono text-xs font-bold transition-all cursor-pointer ${
+                        portfolioPage === pageNum
+                          ? "border-indigo-700 bg-indigo-700 text-white shadow-xs"
+                          : "border-indigo-500/20 bg-white text-charcoal hover:bg-indigo-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setPortfolioPage((p) => Math.min(Math.ceil(auctions.length / PORTFOLIO_PER_PAGE), p + 1))}
+                    disabled={portfolioPage === Math.ceil(auctions.length / PORTFOLIO_PER_PAGE)}
+                    className="rounded-lg border border-indigo-500/20 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-xs hover:bg-indigo-50 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all"
+                  >
+                    Next &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

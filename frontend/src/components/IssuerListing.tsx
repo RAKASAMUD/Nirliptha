@@ -23,6 +23,8 @@ export function IssuerListing() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [resumeAddress, setResumeAddress] = useState<`0x${string}` | undefined>(undefined);
   const [filter, setFilter] = useState<"all" | "active" | "pending" | "settled" | "wallet">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -221,14 +223,60 @@ export function IssuerListing() {
           <p className="font-body text-muted">No auctions match the selected filter.</p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {filteredAuctions
-            .slice()
-            .reverse()
-            .map((a) => (
-              <AuctionCard key={a.address} auction={a} href={`/issuer/${a.address}`} layout="issuer" />
-            ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {filteredAuctions
+              .slice()
+              .reverse()
+              .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+              .map((a) => (
+                <AuctionCard key={a.address} auction={a} href={`/issuer/${a.address}`} layout="issuer" />
+              ))}
+          </div>
+
+          {/* Pagination Carousel Controls (1, 2, 3...) */}
+          {Math.ceil(filteredAuctions.length / ITEMS_PER_PAGE) > 1 && (
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/10 font-body text-xs">
+              <div className="text-muted">
+                Showing <span className="font-bold text-parchment">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span>–
+                <span className="font-bold text-parchment">{Math.min(currentPage * ITEMS_PER_PAGE, filteredAuctions.length)}</span> of{" "}
+                <span className="font-bold text-parchment">{filteredAuctions.length}</span> auctions
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-parchment hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all"
+                >
+                  &larr; Prev
+                </button>
+
+                {Array.from({ length: Math.ceil(filteredAuctions.length / ITEMS_PER_PAGE) }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`h-8 w-8 rounded-lg border font-mono text-xs font-bold transition-all cursor-pointer ${
+                      currentPage === pageNum
+                        ? "border-oxblood bg-oxblood text-white shadow-xs"
+                        : "border-white/20 bg-white/5 text-parchment hover:bg-white/10"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(Math.ceil(filteredAuctions.length / ITEMS_PER_PAGE), p + 1))}
+                  disabled={currentPage === Math.ceil(filteredAuctions.length / ITEMS_PER_PAGE)}
+                  className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-parchment hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all"
+                >
+                  Next &rarr;
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
