@@ -41,11 +41,6 @@ export function Hero() {
         />
       </div>
       <section className="relative z-10 mx-auto flex max-w-(--container-max-width) flex-col items-center gap-unit px-margin-mobile text-center md:px-margin-desktop">
-        {/* Brand Logo Header Badge */}
-        <div className="mb-2 inline-flex items-center gap-3 rounded-full border border-oxblood/30 bg-oxblood/10 px-5 py-2 backdrop-blur-md shadow-lg">
-          <img src="/logo.png" alt="Nirlipta Logo" className="h-9 w-9 object-contain rounded-full shadow-md" />
-          <span className="font-display text-xl font-bold tracking-wider text-parchment uppercase">NIRLIPTA</span>
-        </div>
         <h1 className="max-w-5xl text-4xl leading-none text-parchment md:text-6xl">
           <div className="flex items-center justify-center gap-2 md:gap-4">
             <span className="font-words-taken text-[1.8em] leading-[0.8] md:text-[2.2em]">P</span>
