@@ -93,7 +93,7 @@ export function WhySection() {
               className="why-point-card flex flex-col gap-4 p-8 rounded-3xl border border-black/10 bg-white shadow-sm transition-all hover:shadow-md hover:border-oxblood/30"
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-oxblood/10 font-mono text-xs font-bold text-oxblood">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-oxblood font-copeland text-sm font-normal text-white shadow-xs">
                   {point.n}
                 </span>
                 <span className="h-2 w-2 rounded-full bg-oxblood animate-pulse" />

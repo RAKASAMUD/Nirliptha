@@ -81,7 +81,7 @@ export function HowItWorks() {
               }}
               className="hairline-border flex flex-col sm:flex-row items-start sm:items-center gap-6 bg-surface p-6 rounded-2xl transition-all hover:border-oxblood/40 hover:bg-surface/80 shadow-xs"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-oxblood/10 font-mono text-sm font-bold text-oxblood border border-oxblood/20">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-oxblood/40 font-copeland text-base font-normal text-white border border-oxblood/50 shadow-xs">
                 {step.n}
               </span>
               <div className="flex-1">
