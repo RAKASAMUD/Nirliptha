@@ -1,12 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
+import { syncOfferingTitles } from "@/lib/offeringTitles";
 import { SepoliaEnforcer } from "./SepoliaEnforcer";
 
 export function RootThemeWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isInvestorPage = pathname?.startsWith("/investor") || pathname?.startsWith("/login-investor");
+
+  useEffect(() => {
+    syncOfferingTitles();
+  }, []);
 
   return (
     <div

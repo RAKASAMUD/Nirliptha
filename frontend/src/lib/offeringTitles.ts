@@ -1,16 +1,50 @@
 "use client";
 
-const PRESET_TITLES = [
-  "Qatar World Cup Stadium",
-  "Jabodebek LRT Fleet Series A",
-  "Bali Solar Farm Infrastructure",
-  "Nusantara Toll Road Development Bond",
-  "Sumatra Geothermal Power Plant",
-];
+// Fallback generic title if the title cannot be found in local storage or API
+const DEFAULT_TITLE = "Private Asset Offering";
+
+// Synchronize titles from the server/API to the local registry
+export async function syncOfferingTitles() {
+  if (typeof window === "undefined") return;
+
+  try {
+    const res = await fetch("/api/titles");
+    if (res.ok) {
+      const db = await res.json();
+      const registryStr = localStorage.getItem("offering_titles_registry");
+      let registry: Record<string, string> = {};
+      if (registryStr) {
+        try {
+          registry = JSON.parse(registryStr);
+        } catch (_) {}
+      }
+
+      let updated = false;
+      for (const [address, title] of Object.entries(db)) {
+        if (typeof title === "string" && registry[address] !== title) {
+          registry[address] = title;
+          updated = true;
+          // Dispatch event for each updated title so UI updates reactively
+          window.dispatchEvent(
+            new CustomEvent("offeringTitleUpdated", {
+              detail: { address, title },
+            })
+          );
+        }
+      }
+
+      if (updated) {
+        localStorage.setItem("offering_titles_registry", JSON.stringify(registry));
+      }
+    }
+  } catch (error) {
+    console.error("Failed to sync offering titles from server:", error);
+  }
+}
 
 export function getOfferingTitle(auctionAddress?: string): string {
   if (!auctionAddress) {
-    return "Asset Offering";
+    return DEFAULT_TITLE;
   }
 
   const cleanAddr = auctionAddress.toLowerCase();
@@ -37,13 +71,9 @@ export function getOfferingTitle(auctionAddress?: string): string {
     }
   }
 
-  // Deterministic fallback based on address hash so every auction has a distinct title
-  let charSum = 0;
-  for (let i = 0; i < cleanAddr.length; i++) {
-    charSum += cleanAddr.charCodeAt(i);
-  }
-  const index = charSum % PRESET_TITLES.length;
-  return PRESET_TITLES[index];
+  // No mock data, just use the default title if not found.
+  // The UI should soon receive the title via API sync if it exists.
+  return DEFAULT_TITLE;
 }
 
 export function saveOfferingTitle(auctionAddress: string, title: string): void {
@@ -76,6 +106,14 @@ export function saveOfferingTitle(auctionAddress: string, title: string): void {
           detail: { address: cleanAddr, title: cleanTitle },
         })
       );
+
+      // Async post to server so it persists across different browsers
+      fetch("/api/titles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: cleanAddr, title: cleanTitle }),
+      }).catch(err => console.error("Failed to sync title to server:", err));
+
     } catch (e) {
       console.error("Error saving offering title:", e);
     }
