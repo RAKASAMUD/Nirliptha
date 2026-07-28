@@ -140,7 +140,7 @@ export function WalletSelectModal({ open, connectors, isConnecting, onSelect, on
         </div>
 
         <p className="text-center text-[11px] text-muted/70 leading-relaxed pt-1">
-          Nirlipta operates exclusively on <strong className="text-parchment">Sepolia Testnet</strong> with client-side Nox TEE encryption.
+          Nirliptha operates exclusively on <strong className="text-parchment">Sepolia Testnet</strong> with client-side Nox TEE encryption.
         </p>
 
       </div>

@@ -57,11 +57,11 @@ export function Navbar() {
           }`}
         >
           <img
-            src="/logo.png"
-            alt="Nirlipta"
+            src="/icon.png"
+            alt="Nirliptha"
             className="h-8 w-8 object-contain rounded-full border border-oxblood/20 shadow-xs"
           />
-          <span>NIRLIPTA</span>
+          <span>NIRLIPTHA</span>
         </Link>
         <div className="flex items-center gap-gutter">
           <SignInMenu isInvestorTheme={isInvestorPage} />

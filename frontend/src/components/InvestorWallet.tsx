@@ -250,7 +250,7 @@ export function InvestorWallet() {
                 Wrong Network Detected: {chain?.name || "Monad Testnet"}
               </h4>
               <p className="text-xs text-charcoal/70 mt-0.5">
-                Nirlipta operates on <strong className="text-oxblood font-bold">Sepolia Testnet (ETH)</strong>. Please switch your wallet to Sepolia.
+                Nirliptha operates on <strong className="text-oxblood font-bold">Sepolia Testnet (ETH)</strong>. Please switch your wallet to Sepolia.
               </p>
             </div>
           </div>

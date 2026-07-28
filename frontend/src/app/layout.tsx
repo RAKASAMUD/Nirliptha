@@ -41,13 +41,13 @@ const copeland = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Nirlipta",
+  title: "Nirliptha",
   description:
     "Confidential sealed-bid, uniform-price auction for RWA primary issuance on Nox Protocol.",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
   },
 };
 
