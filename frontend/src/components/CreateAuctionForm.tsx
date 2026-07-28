@@ -273,11 +273,11 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
   return (
     <Card className="p-8 md:p-10 shadow-2xl rounded-[20px]">
       <div className="mb-8">
-        <h3 className="font-display text-3xl md:text-4xl text-parchment font-normal tracking-tight">
-          Create new auction
+        <h3 className="font-display text-3xl md:text-4xl text-parchment font-bold tracking-tight">
+          Create a New Auction
         </h3>
-        <p className="mt-1.5 font-body text-xs text-muted/70 leading-relaxed max-w-lg">
-          Configure the parameters for your confidential RWA primary issuance. All bids remain end-to-end encrypted until settlement.
+        <p className="mt-1.5 font-body text-xs md:text-sm text-muted/80 leading-relaxed max-w-xl">
+          Configure your asset offering and launch a confidential auction. Every bid remains private until the auction is settled.
         </p>
       </div>
 
@@ -288,13 +288,15 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
               <svg className="h-3.5 w-3.5 text-oxblood-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
-              <span>Asset Title / Offering Name</span>
+              <span>Asset Title</span>
             </span>
-            <span className="text-[10px] text-muted font-normal">RWA Asset Title</span>
           </span>
+          <p className="text-[11px] text-muted/70 font-normal -mt-1">
+            Give your offering a recognizable name.
+          </p>
           <input
             type="text"
-            placeholder="e.g. Stadion Qatar World Cup 2026, LRT Jabodebek Fleet, Solar Farm Bali"
+            placeholder="e.g. Qatar World Cup Stadium, Jabodebek LRT Fleet, Bali Solar Farm"
             value={assetName}
             onChange={(e) => setAssetName(e.target.value)}
             className="w-full rounded-[12px] bg-black/40 p-3.5 font-body text-sm font-semibold text-parchment placeholder:text-muted/50 border border-hairline-strong focus:border-oxblood focus:ring-1 focus:ring-oxblood focus:outline-none transition-all"
@@ -307,10 +309,13 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
           <span className="font-body text-xs font-semibold text-parchment/90 tracking-wide">
             Asset Quantity (cASSET)
           </span>
+          <p className="text-[11px] text-muted/70 font-normal -mt-1">
+            Enter the total number of tokens available.
+          </p>
           <input
             type="number"
             step="any"
-            placeholder="e.g. 100000"
+            placeholder="e.g. 100,000"
             value={quantity}
             onWheel={(e) => e.currentTarget.blur()}
             onChange={(e) => {
@@ -334,6 +339,9 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
           <span className="font-body text-xs font-semibold text-parchment/90 tracking-wide">
             Minimum Price (cUSD)
           </span>
+          <p className="text-[11px] text-muted/70 font-normal -mt-1">
+            Set the lowest price investors can bid.
+          </p>
           <input
             type="number"
             step="0.01"
@@ -359,8 +367,11 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
 
         <div id="field-duration" className="flex flex-col gap-2">
           <span className="font-body text-xs font-semibold text-parchment/90 tracking-wide">
-            Duration
+            Auction Duration
           </span>
+          <p className="text-[11px] text-muted/70 font-normal -mt-1">
+            Choose how long the auction will remain open.
+          </p>
           <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
               <div className="relative">
@@ -410,7 +421,7 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
                   M
                 </span>
               </div>
-              <span className="font-body text-[10px] text-muted/50 text-center uppercase tracking-wider">Mins</span>
+              <span className="font-body text-[10px] text-muted/50 text-center uppercase tracking-wider">Minutes</span>
             </div>
 
             <div className="flex flex-col gap-1">
@@ -436,7 +447,7 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
                   S
                 </span>
               </div>
-              <span className="font-body text-[10px] text-muted/50 text-center uppercase tracking-wider">Secs</span>
+              <span className="font-body text-[10px] text-muted/50 text-center uppercase tracking-wider">Seconds</span>
             </div>
           </div>
           {fieldErrors.duration ? (
@@ -446,19 +457,19 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
           ) : null}
         </div>
 
-        {/* REVENUE TREASURY DESTINATION (AUTO-FILLED ISSUER WALLET) */}
+        {/* ISSUER & SETTLEMENT WALLET */}
         <div id="field-safeAddress" className="flex flex-col gap-2">
           <span className="font-body text-xs font-semibold text-parchment/90 tracking-wide flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <svg className="h-3.5 w-3.5 text-muted/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              Alamat Issuer &amp; Penerima Pendapatan (*Safe Treasury*)
-            </span>
-            <span className="text-[10px] text-emerald-400 font-mono font-bold">
-              ✓ Issuer Wallet Identified
+              Issuer &amp; Settlement Wallet
             </span>
           </span>
+          <p className="text-[11px] text-muted/70 font-normal -mt-1">
+            Your connected wallet is automatically used as the issuer wallet and the destination for settlement proceeds.
+          </p>
 
           <div className="relative flex items-center">
             <input
@@ -468,13 +479,18 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
               className="w-full rounded-[12px] bg-black/40 p-3.5 font-mono text-xs font-semibold text-emerald-400 border border-hairline-strong focus:outline-none cursor-default pr-36"
             />
             <span className="absolute right-3 text-[11px] font-body font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-              ✓ Auto Issuer Wallet
+              ✓ Issuer Wallet Connected
             </span>
           </div>
 
-          <span className="font-body text-[11px] text-muted leading-relaxed">
-            Dompet terhubung kamu secara otomatis menjadi **Alamat Issuer Resmi** pembuat lelang ini. Seluruh pendapatan cUSD lelang akan masuk langsung ke dompet Issuer kamu saat penarikan (*withdrawal*).
-          </span>
+          <div className="rounded-[12px] bg-black/30 border border-hairline-strong p-3.5 mt-1">
+            <span className="font-body text-[11px] font-bold text-parchment/90 block mb-0.5">
+              Automatic Setup
+            </span>
+            <span className="font-body text-[11px] text-muted leading-relaxed block">
+              Your connected wallet will be registered as the auction issuer. Settlement proceeds will be available here and can be withdrawn to your Safe treasury after the auction is completed.
+            </span>
+          </div>
         </div>
       </div>
 
