@@ -467,28 +467,20 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
               Issuer &amp; Settlement Wallet
             </span>
           </span>
-          <p className="text-[11px] text-muted/70 font-normal -mt-1">
-            Your connected wallet is automatically used as the issuer wallet and the destination for settlement proceeds.
-          </p>
 
-          <div className="relative flex items-center">
-            <input
-              type="text"
-              readOnly
-              value={address ? `${address} (Issuer Wallet)` : safeAddress}
-              className="w-full rounded-[12px] bg-black/40 p-3.5 font-mono text-xs font-semibold text-emerald-400 border border-hairline-strong focus:outline-none cursor-default pr-36"
-            />
-            <span className="absolute right-3 text-[11px] font-body font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-              ✓ Issuer Wallet Connected
-            </span>
-          </div>
+          <input
+            type="text"
+            readOnly
+            value={address ? `${address} (Issuer Wallet)` : safeAddress}
+            className="w-full rounded-[12px] bg-black/40 p-3.5 font-mono text-xs font-semibold text-emerald-400 border border-hairline-strong focus:outline-none cursor-default"
+          />
 
           <div className="rounded-[12px] bg-black/30 border border-hairline-strong p-3.5 mt-1">
-            <span className="font-body text-[11px] font-bold text-parchment/90 block mb-0.5">
+            <span className="font-body text-[11px] font-bold text-parchment/90 block mb-1">
               Automatic Setup
             </span>
             <span className="font-body text-[11px] text-muted leading-relaxed block">
-              Your connected wallet will be registered as the auction issuer. Settlement proceeds will be available here and can be withdrawn to your Safe treasury after the auction is completed.
+              Your connected wallet is automatically registered as the official issuer wallet. Settlement proceeds will be received here and can be withdrawn to your Safe treasury upon auction completion.
             </span>
           </div>
         </div>
