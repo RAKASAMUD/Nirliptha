@@ -19,12 +19,6 @@ const logos: CustomLogoItem[] = [
     imgClassName: "h-[120px] w-[120px] max-h-[120px] object-contain",
   },
   {
-    src: "/safe.png",
-    alt: "Gnosis Safe",
-    containerClassName: "flex h-[80px] w-[200px] items-center justify-center p-2",
-    imgClassName: "h-[50px] w-auto max-h-[50px] object-contain",
-  },
-  {
     src: "/sepolia.png",
     alt: "Sepolia",
     containerClassName: "flex h-[120px] w-auto items-center justify-center p-0",
