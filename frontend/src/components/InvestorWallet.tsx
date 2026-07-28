@@ -235,8 +235,8 @@ export function InvestorWallet() {
         <span className="mb-2 inline-block font-mono text-xs font-bold uppercase tracking-wider text-oxblood/80">
           Portfolio &amp; Fund Overview
         </span>
-        <h1 className="font-display text-3xl md:text-5xl text-charcoal tracking-tight">
-          Investor Wallet &amp; Balances
+        <h1 className="font-display text-3xl md:text-5xl text-charcoal tracking-tight font-bold">
+          Wallet
         </h1>
         <p className="mt-2 text-sm md:text-base text-charcoal/75 max-w-2xl leading-relaxed">
           Comprehensive, clear breakdown of your testnet gas fees, confidential bid tokens, locked auction escrows, and claimable RWA assets.

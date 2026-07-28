@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuctionList } from "@/hooks/useAuctionList";
 import { AuctionCard } from "./AuctionCard";
+import { WalletIcon } from "./icons";
 
 export function InvestorListing() {
   const { auctions, isLoading } = useAuctionList();
@@ -84,9 +85,9 @@ export function InvestorListing() {
             >
               <div className="flex items-center gap-2.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white">
-                  💳
+                  <WalletIcon className="h-4 w-4" />
                 </div>
-                <span>My Wallet & Balances</span>
+                <span>Wallet</span>
               </div>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>

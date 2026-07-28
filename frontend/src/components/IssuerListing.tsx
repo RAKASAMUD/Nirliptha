@@ -9,6 +9,7 @@ import { CreateAuctionForm } from "./CreateAuctionForm";
 import { Button } from "./Button";
 import { Card } from "./Card";
 import { AuthHero } from "./AuthHero";
+import { WalletIcon } from "./icons";
 import { IssuerWalletPanel } from "./IssuerWalletPanel";
 import { getOfferingTitle } from "@/lib/offeringTitles";
 
@@ -195,7 +196,8 @@ export function IssuerListing() {
               : "text-muted hover:bg-white/5 hover:text-parchment"
           }`}
         >
-          <span>💳 Wallet &amp; Balances</span>
+          <WalletIcon className="h-3.5 w-3.5" />
+          <span>Wallet</span>
         </button>
       </div>
 
