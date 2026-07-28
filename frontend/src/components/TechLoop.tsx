@@ -24,6 +24,12 @@ const logos: CustomLogoItem[] = [
     containerClassName: "flex h-[120px] w-auto items-center justify-center p-0",
     imgClassName: "h-[120px] w-auto max-h-[120px] object-contain",
   },
+  {
+    src: "/nextjs.jpg",
+    alt: "Next.js",
+    containerClassName: "flex h-[120px] w-auto items-center justify-center p-0",
+    imgClassName: "h-[120px] w-auto max-h-[120px] object-contain rounded-xl",
+  },
 ];
 
 export function TechLoop() {
