@@ -38,7 +38,7 @@ export function WhySection() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: triggerRef.current,
-          start: "top top",
+          start: "center center", // Pins when section center is vertically aligned in middle of screen
           end: "+=300%", // Requires 3x screen height scroll to reveal all 3 cards!
           pin: true,
           pinSpacing: true, // Prevents next section from overlapping!
