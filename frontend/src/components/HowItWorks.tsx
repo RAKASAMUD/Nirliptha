@@ -49,14 +49,19 @@ export function HowItWorks() {
         if (!entry.isIntersecting) return;
         observer.disconnect();
 
+        const validCards = cardRefs.current.filter((el): el is HTMLDivElement => el !== null);
         const tl = gsap.timeline();
-        tl.to(lineRef.current, { scaleX: 1, duration: 0.8, ease: "power2.out" }, 0);
-        tl.fromTo(
-          cardRefs.current,
-          { opacity: 0, y: 24, scale: 0.94 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.4)", stagger: 0.12 },
-          0.2
-        );
+        if (lineRef.current) {
+          tl.to(lineRef.current, { scaleX: 1, duration: 0.8, ease: "power2.out" }, 0);
+        }
+        if (validCards.length > 0) {
+          tl.fromTo(
+            validCards,
+            { opacity: 0, y: 24, scale: 0.94 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.4)", stagger: 0.12 },
+            0.2
+          );
+        }
       },
       { threshold: 0.2 }
     );

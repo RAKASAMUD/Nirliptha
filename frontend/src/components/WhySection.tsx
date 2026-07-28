@@ -31,6 +31,7 @@ export function WhySection() {
 
     const ctx = gsap.context(() => {
       const items = gsap.utils.toArray<HTMLElement>(".why-point-card");
+      if (items.length === 0) return;
 
       // Set initial hidden state with 3D offset and blur
       gsap.set(items, { opacity: 0, y: 70, scale: 0.9, filter: "blur(6px)" });
