@@ -15,20 +15,20 @@ const logos: CustomLogoItem[] = [
   {
     src: "/Nox.png",
     alt: "Nox Protocol",
-    containerClassName: "flex h-30 w-30 items-center justify-center p-1",
-    imgClassName: "h-30 w-30 object-contain",
+    containerClassName: "flex h-[120px] w-[120px] items-center justify-center p-0",
+    imgClassName: "h-[120px] w-[120px] max-h-[120px] object-contain",
   },
   {
     src: "/safe.png",
     alt: "Gnosis Safe",
-    containerClassName: "flex h-20 w-44 items-center justify-center p-3",
-    imgClassName: "h-14 w-auto object-contain",
+    containerClassName: "flex h-[80px] w-[200px] items-center justify-center p-2",
+    imgClassName: "h-[50px] w-auto max-h-[50px] object-contain",
   },
   {
     src: "/sepolia.png",
     alt: "Sepolia",
-    containerClassName: "flex h-20 w-40 items-center justify-center p-3",
-    imgClassName: "h-16 w-auto object-contain",
+    containerClassName: "flex h-[120px] w-auto items-center justify-center p-0",
+    imgClassName: "h-[120px] w-auto max-h-[120px] object-contain",
   },
 ];
 
@@ -39,17 +39,18 @@ export function TechLoop() {
         logos={logos}
         speed={60}
         direction="right"
-        gap={32}
+        gap={48}
+        logoHeight={120}
         pauseOnHover
         ariaLabel="Built on"
         renderItem={(item) => {
           const custom = item as CustomLogoItem;
           return "src" in custom ? (
-            <div className={custom.containerClassName || "flex h-20 w-40 items-center justify-center rounded-xl p-4"}>
+            <div className={custom.containerClassName || "flex h-[80px] w-[160px] items-center justify-center rounded-xl p-2"}>
               <img
                 src={custom.src}
                 alt={custom.alt}
-                className={custom.imgClassName || "h-20 w-40 object-contain"}
+                className={custom.imgClassName || "h-[60px] w-auto object-contain"}
               />
             </div>
           ) : null;

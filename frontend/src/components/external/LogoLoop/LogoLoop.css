@@ -74,7 +74,8 @@
 }
 
 .logoloop__item img {
-  height: var(--logoloop-logoHeight);
+  max-height: var(--logoloop-logoHeight, 120px);
+  height: 100%;
   width: auto;
   display: block;
   object-fit: contain;
