@@ -24,6 +24,7 @@ const POINTS = [
 
 export function WhySection() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -33,35 +34,45 @@ export function WhySection() {
       const items = gsap.utils.toArray<HTMLElement>(".why-point-card");
       if (items.length === 0) return;
 
-      // Set initial hidden state with 3D offset and blur
-      gsap.set(items, { opacity: 0, y: 70, scale: 0.9, filter: "blur(6px)" });
-
-      // Create smooth staggered reveal tied to scroll without pin overlap
+      // PINNED SCROLLTRIGGER TIMELINE WITH 300% SCROLL DISTANCE
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top 75%",
-          end: "bottom 70%",
-          scrub: 1.2,
+          trigger: triggerRef.current,
+          start: "top top",
+          end: "+=300%", // Requires 3x screen height scroll to reveal all 3 cards!
+          pin: true,
+          pinSpacing: true, // Prevents next section from overlapping!
+          scrub: 1,
+          anticipatePin: 1,
         },
       });
 
-      tl.to(items, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        filter: "blur(0px)",
-        stagger: 0.5,
-        ease: "power2.out",
+      // Initially hide all 3 items with blur & vertical offset
+      gsap.set(items, { opacity: 0, y: 140, scale: 0.85, filter: "blur(8px)" });
+
+      // Sequentially animate each card into full view as user scrolls
+      items.forEach((item, index) => {
+        tl.to(
+          item,
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 1,
+            ease: "power3.out",
+          },
+          index * 1.2
+        );
       });
-    }, containerRef);
+    }, triggerRef);
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <div className="w-full bg-white border-y border-black/10">
-      <section ref={containerRef} className="mx-auto max-w-(--container-max-width) px-margin-mobile py-24 md:px-margin-desktop">
+    <div ref={triggerRef} className="w-full bg-white border-y border-black/10 overflow-hidden">
+      <section ref={containerRef} className="mx-auto max-w-(--container-max-width) px-margin-mobile py-20 md:px-margin-desktop min-h-screen flex flex-col justify-center">
         <div className="mb-12 flex justify-center text-center">
           <div>
             <span className="font-mono text-xs font-bold text-oxblood uppercase tracking-widest block mb-2">
