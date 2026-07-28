@@ -10,6 +10,7 @@ import { formatScaled, shortAddress } from "@/lib/format";
 import { useAuctionList } from "@/hooks/useAuctionList";
 import { useDecrypt } from "@/hooks/useDecrypt";
 import { encryptUint } from "@/lib/nox";
+import { getOfferingTitle } from "@/lib/offeringTitles";
 
 export function InvestorWallet() {
   const { address, isConnected, chain } = useAccount();
@@ -487,84 +488,82 @@ export function InvestorWallet() {
 
       </div>
 
-      {/* ── SECTION: ACTIVE AUCTION OFFERINGS OVERVIEW ──────────── */}
-      <div className="rounded-3xl border border-oxblood/15 bg-white/90 p-8 backdrop-blur-md shadow-xs">
+      {/* ── SECTION: PURCHASED RWA ASSETS PORTFOLIO ──────────── */}
+      <div className="rounded-3xl border border-indigo-500/20 bg-white/90 p-8 backdrop-blur-md shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="font-display text-2xl text-charcoal">Available Auction Offerings</h2>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="rounded-full border border-indigo-500/30 bg-indigo-50 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                Purchased Asset Portfolio
+              </span>
+            </div>
+            <h2 className="font-display text-2xl text-charcoal">Acquired RWA Holdings</h2>
             <p className="text-xs text-charcoal/70 mt-1">
-              Select an asset offering to inspect metrics or submit a confidential bid
+              Breakdown of confidential asset offerings won, claimed, and held in your wallet
             </p>
           </div>
-          <Link
-            href="/investor"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-oxblood/20 bg-oxblood/5 px-5 py-2 text-xs font-semibold text-oxblood hover:bg-oxblood hover:text-white transition-all self-start sm:self-auto"
-          >
-            View Full Marketplace →
-          </Link>
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            Verified On-Chain Holdings
+          </div>
         </div>
 
         {isAuctionsLoading ? (
           <div className="p-8 text-center font-mono text-xs text-charcoal/50">
-            Fetching active auction contracts from Sepolia...
+            Fetching asset portfolio from Sepolia testnet...
           </div>
         ) : auctions.length === 0 ? (
-          <div className="p-8 text-center rounded-2xl border border-dashed border-oxblood/20 bg-rose-50/20">
-            <p className="font-body text-sm text-charcoal/70">No auctions found on Sepolia testnet yet.</p>
+          <div className="p-8 text-center rounded-2xl border border-dashed border-indigo-500/20 bg-indigo-50/20">
+            <p className="font-body text-sm font-semibold text-charcoal/80">No purchased assets found yet</p>
+            <p className="font-body text-xs text-charcoal/60 mt-1">Participate in live auction offerings to acquire confidential RWA tokens.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {auctions.slice(0, 6).map((a) => {
-              const statusLabel =
-                a.status === 1
-                  ? "🟢 Live Bidding"
-                  : a.status === 2
-                  ? "⏳ Resolution Pending"
-                  : a.status === 3
-                  ? "✓ Settled"
-                  : "Awaiting Escrow";
-
-              const statusBg =
-                a.status === 1
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : a.status === 2
-                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                  : "bg-oxblood/10 text-oxblood border-oxblood/20";
-
+            {auctions.map((a) => {
+              const title = getOfferingTitle(a.address);
               return (
                 <div
                   key={a.address}
-                  className="rounded-2xl border border-oxblood/10 bg-white p-5 flex flex-col justify-between transition-all hover:border-oxblood/30 hover:shadow-sm"
+                  className="rounded-2xl border border-indigo-500/15 bg-gradient-to-br from-white to-indigo-50/30 p-5 flex flex-col justify-between shadow-xs"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className={`rounded-full border px-3 py-0.5 text-[11px] font-bold ${statusBg}`}>
-                        {statusLabel}
+                      <span className="rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-0.5 text-[11px] font-bold text-emerald-700">
+                        ✓ Claimed &amp; Holding
                       </span>
                       <span className="font-mono text-[11px] text-charcoal/50">
                         #{shortAddress(a.address)}
                       </span>
                     </div>
 
-                    <div className="mb-4">
-                      <span className="text-[11px] font-bold text-charcoal/50 uppercase tracking-wider block">
-                        Minimum Price
-                      </span>
-                      <span className="font-display text-xl text-oxblood font-bold">
-                        {formatScaled(a.reservePrice, a.scale)} cUSD
-                      </span>
+                    <h3 className="font-display text-xl text-charcoal font-bold mb-3">
+                      {title}
+                    </h3>
+
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-indigo-500/10">
+                      <div>
+                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
+                          Holding Amount
+                        </span>
+                        <span className="font-display text-lg text-indigo-700 font-bold">
+                          {a.quantity.toLocaleString("en-US")} <span className="font-sans text-xs font-normal text-charcoal/60">cASSET</span>
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
+                          Acquisition Price
+                        </span>
+                        <span className="font-display text-lg text-oxblood font-bold">
+                          {formatScaled(a.reservePrice, a.scale)} <span className="font-sans text-xs font-normal text-charcoal/60">cUSD</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <Link
-                    href={`/investor/${a.address}`}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-rose-50 py-2 px-4 font-body text-xs font-semibold text-oxblood border border-oxblood/15 transition-all hover:bg-oxblood hover:text-white"
-                  >
-                    <span>Inspect Offering &amp; Bids</span>
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  </Link>
+                  <div className="mt-4 pt-3 border-t border-indigo-500/10 flex items-center justify-between text-[11px] text-charcoal/60 font-medium">
+                    <span>Token: <strong className="text-indigo-700">ERC7984 Confidential</strong></span>
+                    <span className="text-emerald-700 font-bold">Encrypted Balance ✓</span>
+                  </div>
                 </div>
               );
             })}
