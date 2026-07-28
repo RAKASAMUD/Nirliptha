@@ -23,7 +23,7 @@ export function AuthHero({ role }: Props) {
       >
         {/* Brand Logo Header */}
         <div className="mb-6 inline-flex items-center gap-3">
-          <img src="/logo.png" alt="Nirlipta Logo" className="h-10 w-10 object-contain rounded-full border border-oxblood/30 shadow-md" />
+          <img src="/logo.png" alt="Nirlipta Logo" className="h-10 w-10 object-contain rounded-full" />
           <span className={`font-display text-2xl font-bold tracking-tight uppercase ${isInvestor ? "text-oxblood" : "text-parchment"}`}>
             NIRLIPTA
           </span>
@@ -64,10 +64,8 @@ export function AuthHero({ role }: Props) {
 
         <div className="relative z-10 flex flex-col items-center text-center gap-8 max-w-xs w-full">
 
-          {/* ICON LOGO */}
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/10 border border-white/20 backdrop-blur-sm shadow-xl p-2">
-            <img src="/logo.png" alt="Nirlipta Logo" className="h-12 w-12 object-contain rounded-full shadow-md" />
-          </div>
+          {/* ICON LOGO (No square bg box) */}
+          <img src="/logo.png" alt="Nirlipta Logo" className="h-16 w-16 object-contain rounded-full drop-shadow-xl" />
 
           {/* HEADING + SUBTEXT */}
           <div>
