@@ -82,6 +82,13 @@ export function IssuerDashboard({ auctionAddress }: Props) {
       setActionError("Smart Contract Enforced: Connected wallet is not the authorized Issuer for this auction.");
       return;
     }
+
+    const nowSecs = Math.floor(Date.now() / 1000);
+    if (auction.status === 1 && Number(auction.deadline) > 0 && nowSecs <= Number(auction.deadline)) {
+      setActionError("Smart Contract Enforced: Auction is still active. Finalization or cancellation is locked until deadline expires.");
+      return;
+    }
+
     setActionError(null);
     setActionStep("Sending transaction to blockchain...");
     try {
@@ -180,18 +187,6 @@ export function IssuerDashboard({ auctionAddress }: Props) {
 
   return (
     <>
-      <div className="mb-6">
-        <Link
-          href="/issuer"
-          className="inline-flex items-center gap-2 rounded-full border border-hairline-strong bg-white/5 px-4 py-2 font-body text-xs font-semibold text-parchment transition-all hover:bg-white/10 hover:border-oxblood/40 hover:text-oxblood-light cursor-pointer"
-        >
-          <svg className="h-4 w-4 text-oxblood-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-          Back to Issuer Dashboard
-        </Link>
-      </div>
-
       {/* ── GLOBAL ACTION BANNER ─────────────────────────────────── */}
       {actionStep && (
         <div className={`mb-6 rounded-[16px] border px-5 py-4 font-body text-xs flex items-center gap-3 animate-in fade-in duration-200 ${

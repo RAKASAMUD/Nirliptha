@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { WalletIcon } from "./icons";
@@ -20,6 +20,17 @@ export function ConnectButton({ variant = "dark" }: ConnectButtonProps) {
   const { disconnect } = useDisconnect();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showSelectModal, setShowSelectModal] = useState(false);
+
+  // AUTO-FORCE SWITCH TO SEPOLIA NETWORK IMMEDIATELY UPON WALLET CONNECT
+  useEffect(() => {
+    if (isConnected && chainId !== sepolia.id && switchChain) {
+      try {
+        switchChain({ chainId: sepolia.id });
+      } catch (err) {
+        console.warn("Auto-switch to Sepolia prompt triggered:", err);
+      }
+    }
+  }, [isConnected, chainId, switchChain]);
 
   if (!isConnected || !address) {
     const lightCls =

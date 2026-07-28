@@ -40,7 +40,17 @@ export function InvestorDashboard({ auctionAddress }: Props) {
   const [offeringTitle, setOfferingTitle] = useState("Asset Offering");
 
   useEffect(() => {
+    if (!auctionAddress) return;
     setOfferingTitle(getOfferingTitle(auctionAddress));
+
+    const handleUpdate = (e: Event) => {
+      const customEvt = e as CustomEvent;
+      if (customEvt.detail?.address === auctionAddress.toLowerCase()) {
+        setOfferingTitle(customEvt.detail.title);
+      }
+    };
+    window.addEventListener("offeringTitleUpdated", handleUpdate);
+    return () => window.removeEventListener("offeringTitleUpdated", handleUpdate);
   }, [auctionAddress]);
 
   const [cUsdBalance, setCUsdBalance] = useState<bigint | null>(null);
@@ -137,7 +147,7 @@ export function InvestorDashboard({ auctionAddress }: Props) {
           </Link>
         </div>
 
-        <div className="rounded-[24px] border border-oxblood/15 bg-white/95 p-6 md:p-10 shadow-[0_10px_35px_rgba(132,0,22,0.08)]">
+        <div className="rounded-[24px] border border-oxblood/20 bg-white/75 backdrop-blur-2xl p-6 md:p-10 shadow-[0_8px_32px_0_rgba(132,0,22,0.12)]">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-oxblood/10 pb-6">
             <div>
               <span className="inline-block mb-1.5 rounded-full border border-oxblood/20 bg-oxblood/10 px-3 py-0.5 text-[10px] font-bold text-oxblood uppercase tracking-wider">
@@ -151,19 +161,19 @@ export function InvestorDashboard({ auctionAddress }: Props) {
           </div>
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4 font-body">
-            <div className="rounded-[14px] border border-oxblood/10 bg-rose-50/40 p-4">
+            <div className="rounded-[16px] border border-oxblood/15 bg-white/60 backdrop-blur-md p-4 shadow-xs">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-1">Min Price</span>
               <span className="font-display text-xl font-bold text-oxblood">{formatScaled(auction.reservePrice, auction.scale)} cUSD</span>
             </div>
-            <div className="rounded-[14px] border border-oxblood/10 bg-rose-50/40 p-4">
+            <div className="rounded-[16px] border border-oxblood/15 bg-white/60 backdrop-blur-md p-4 shadow-xs">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-1">Total Quantity</span>
               <span className="font-display text-xl font-bold text-charcoal">{auction.quantity.toLocaleString("en-US")} cASSET</span>
             </div>
-            <div className="rounded-[14px] border border-oxblood/10 bg-rose-50/40 p-4">
+            <div className="rounded-[16px] border border-oxblood/15 bg-white/60 backdrop-blur-md p-4 shadow-xs">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-1">Bids Submitted</span>
               <span className="font-display text-xl font-bold text-charcoal">{auction.bidCount} / 5</span>
             </div>
-            <div className="rounded-[14px] border border-oxblood/10 bg-rose-50/40 p-4">
+            <div className="rounded-[16px] border border-oxblood/15 bg-white/60 backdrop-blur-md p-4 shadow-xs">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/60 block mb-1">Auction Status</span>
               <span className="font-body text-xs font-semibold text-emerald-700 flex items-center gap-1.5 mt-1">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Live Bidding
@@ -184,18 +194,6 @@ export function InvestorDashboard({ auctionAddress }: Props) {
 
   return (
     <div className="w-full font-body py-2">
-      <div className="mb-4">
-        <Link
-          href="/investor"
-          className="inline-flex items-center gap-2 rounded-full border border-oxblood/20 bg-white/90 px-4 py-2 text-xs font-semibold text-charcoal shadow-xs transition-all duration-300 hover:bg-white hover:border-oxblood/40 hover:text-oxblood hover:shadow-sm"
-        >
-          <svg className="h-4 w-4 text-oxblood" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-          Back to Asset Offerings
-        </Link>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN (7 cols): Main Auction Details + Status Bar + KPIs */}
         <div className="lg:col-span-7 flex flex-col gap-4">

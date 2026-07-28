@@ -464,7 +464,6 @@ export function InvestorWallet() {
             <p className="font-body text-xs text-charcoal/60 mt-1">Participate in live auction offerings to acquire confidential RWA tokens.</p>
           </div>
         ) : (
-        ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {auctions

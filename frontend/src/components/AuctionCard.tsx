@@ -21,6 +21,15 @@ export function AuctionCard({ auction, href, showIssuer = false, layout = "inves
 
   useEffect(() => {
     setOfferingTitle(getOfferingTitle(auction.address));
+
+    const handleUpdate = (e: Event) => {
+      const customEvt = e as CustomEvent;
+      if (customEvt.detail?.address === auction.address.toLowerCase()) {
+        setOfferingTitle(customEvt.detail.title);
+      }
+    };
+    window.addEventListener("offeringTitleUpdated", handleUpdate);
+    return () => window.removeEventListener("offeringTitleUpdated", handleUpdate);
   }, [auction.address]);
 
   const getStatusBadge = () => {

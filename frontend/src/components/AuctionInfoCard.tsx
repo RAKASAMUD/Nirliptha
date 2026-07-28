@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card } from "./Card";
-import { DataRow } from "./DataRow";
 import { EncryptedValue } from "./EncryptedValue";
 import { Countdown } from "./Countdown";
 import { StatusBar } from "./StatusBar";
@@ -25,7 +24,17 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
   const [offeringTitle, setOfferingTitle] = useState("Asset Offering");
 
   useEffect(() => {
+    if (!displayAddress) return;
     setOfferingTitle(getOfferingTitle(displayAddress));
+
+    const handleUpdate = (e: Event) => {
+      const customEvt = e as CustomEvent;
+      if (customEvt.detail?.address === displayAddress.toLowerCase()) {
+        setOfferingTitle(customEvt.detail.title);
+      }
+    };
+    window.addEventListener("offeringTitleUpdated", handleUpdate);
+    return () => window.removeEventListener("offeringTitleUpdated", handleUpdate);
   }, [displayAddress]);
 
   const renderStatusBadge = () => {
@@ -60,15 +69,21 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
   };
 
   return (
-    <Card className={isIssuerLayout ? "p-8 md:p-10 shadow-2xl bg-surface border-hairline-strong" : "p-8 md:p-10 shadow-xl bg-white/95 border-oxblood/15"}>
+    <Card
+      className={
+        isIssuerLayout
+          ? "p-8 md:p-10 shadow-2xl bg-surface/85 backdrop-blur-2xl border border-white/15 rounded-[24px] shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] transition-all"
+          : "p-8 md:p-10 shadow-2xl bg-white/75 backdrop-blur-2xl border border-oxblood/20 rounded-[24px] shadow-[0_8px_32px_0_rgba(132,0,22,0.12)] transition-all"
+      }
+    >
       {/* Back Button */}
       <div className="mb-6">
         <Link
           href={isIssuerLayout ? "/issuer" : "/investor"}
           className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-body text-xs font-semibold transition-all duration-300 ${
             isIssuerLayout
-              ? "border-hairline-strong bg-white/5 text-parchment hover:bg-white/10 hover:border-oxblood/40 hover:text-oxblood-light"
-              : "border-oxblood/20 bg-white/90 text-charcoal hover:bg-white hover:border-oxblood/40 hover:text-oxblood"
+              ? "border-white/15 bg-white/10 text-parchment backdrop-blur-md hover:bg-white/20 hover:border-oxblood/40 hover:text-oxblood-light"
+              : "border-oxblood/20 bg-white/80 text-charcoal backdrop-blur-md hover:bg-white hover:border-oxblood/40 hover:text-oxblood"
           }`}
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -79,10 +94,17 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
       </div>
 
       {/* Top Header Row */}
-      <div className={`mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
+      <div
+        className={`mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-6 ${
+          isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"
+        }`}
+      >
         <div>
           <h2 className={`font-display text-3xl md:text-4xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
-            {offeringTitle} <span className="font-mono text-xl font-normal opacity-70">#{shortAddress(displayAddress).slice(-4)}</span>
+            {offeringTitle}{" "}
+            <span className="font-mono text-xl font-normal opacity-70">
+              #{shortAddress(displayAddress).slice(-4)}
+            </span>
           </h2>
           {displayAddress ? (
             <a
@@ -106,8 +128,18 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
 
       {/* Main KPI Highlight Blocks (3 Columns) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className={`rounded-[16px] border p-6 ${isIssuerLayout ? "border-hairline-strong bg-black/40" : "border-oxblood/10 bg-rose-50/40"}`}>
-          <span className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
+        <div
+          className={`rounded-[18px] border p-6 backdrop-blur-md transition-all ${
+            isIssuerLayout
+              ? "border-white/10 bg-black/40 shadow-inner hover:border-white/25 hover:bg-black/50"
+              : "border-oxblood/15 bg-white/60 shadow-xs hover:border-oxblood/30 hover:bg-white/80"
+          }`}
+        >
+          <span
+            className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${
+              isIssuerLayout ? "text-muted" : "text-charcoal/60"
+            }`}
+          >
             Quantity For Sale
           </span>
           <p className={`font-display text-2xl md:text-3xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
@@ -116,46 +148,89 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
           </p>
         </div>
 
-        <div className={`rounded-[16px] border p-6 ${isIssuerLayout ? "border-hairline-strong bg-black/40" : "border-oxblood/10 bg-rose-50/40"}`}>
-          <span className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
+        <div
+          className={`rounded-[18px] border p-6 backdrop-blur-md transition-all ${
+            isIssuerLayout
+              ? "border-white/10 bg-black/40 shadow-inner hover:border-white/25 hover:bg-black/50"
+              : "border-oxblood/15 bg-white/60 shadow-xs hover:border-oxblood/30 hover:bg-white/80"
+          }`}
+        >
+          <span
+            className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${
+              isIssuerLayout ? "text-muted" : "text-charcoal/60"
+            }`}
+          >
             {isSettled ? "Clearing Price" : "Minimum Starting Price"}
           </span>
-          <p className={`font-display text-2xl md:text-3xl ${isSettled ? "text-indigo-400" : isIssuerLayout ? "text-parchment" : "text-oxblood"}`}>
-            {isSettled && auction.clearingPrice > BigInt(0) && auction.clearingPrice < BigInt("340282366920938463463374607431768211455")
+          <p
+            className={`font-display text-2xl md:text-3xl ${
+              isSettled ? "text-indigo-400" : isIssuerLayout ? "text-parchment" : "text-oxblood"
+            }`}
+          >
+            {isSettled &&
+            auction.clearingPrice > BigInt(0) &&
+            auction.clearingPrice < BigInt("340282366920938463463374607431768211455")
               ? formatScaled(auction.clearingPrice, auction.scale)
               : formatScaled(auction.reservePrice, auction.scale)}{" "}
             <span className="font-sans text-base font-normal opacity-70">cUSD</span>
           </p>
         </div>
 
-        <div className={`rounded-[16px] border p-6 ${isIssuerLayout ? "border-hairline-strong bg-black/40" : "border-oxblood/10 bg-rose-50/40"}`}>
-          <span className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
+        <div
+          className={`rounded-[18px] border p-6 backdrop-blur-md transition-all ${
+            isIssuerLayout
+              ? "border-white/10 bg-black/40 shadow-inner hover:border-white/25 hover:bg-black/50"
+              : "border-oxblood/15 bg-white/60 shadow-xs hover:border-oxblood/30 hover:bg-white/80"
+          }`}
+        >
+          <span
+            className={`font-body text-xs font-semibold uppercase tracking-wider block mb-1 ${
+              isIssuerLayout ? "text-muted" : "text-charcoal/60"
+            }`}
+          >
             Bids Submitted
           </span>
           <p className={`font-display text-2xl md:text-3xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
-            {auction.bidCount}{" "}
-            <span className="font-sans text-base font-normal opacity-70">/ 5 Bidders</span>
+            {auction.bidCount} <span className="font-sans text-base font-normal opacity-70">/ 5 Bidders</span>
           </p>
         </div>
       </div>
 
       {/* Countdown Strip for Active Auction */}
       {auction.status === 1 ? (
-        <div className={`mt-8 rounded-[16px] border p-6 text-center shadow-inner ${isIssuerLayout ? "border-hairline-strong bg-black/50" : "border-oxblood/15 bg-white"}`}>
-          <p className={`mb-3 font-body text-xs font-semibold uppercase tracking-widest ${isIssuerLayout ? "text-muted" : "text-oxblood"}`}>
+        <div
+          className={`mt-8 rounded-[18px] border p-6 text-center shadow-inner backdrop-blur-md ${
+            isIssuerLayout ? "border-white/10 bg-black/50" : "border-oxblood/20 bg-white/80"
+          }`}
+        >
+          <p
+            className={`mb-3 font-body text-xs font-semibold uppercase tracking-widest ${
+              isIssuerLayout ? "text-muted" : "text-oxblood"
+            }`}
+          >
             {isIssuerLayout ? "Offering Closes In" : "Bidding Period Closes In"}
           </p>
           <Countdown
             deadline={auction.deadline}
-            className={`font-body text-4xl font-bold tracking-tight ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}
+            className={`font-body text-4xl font-bold tracking-tight ${
+              isIssuerLayout ? "text-parchment" : "text-charcoal"
+            }`}
           />
         </div>
       ) : null}
 
       {/* Unsold Balance for Settled Auction */}
       {isSettled ? (
-        <div className={`mt-8 border-t pt-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
-          <p className={`mb-2 font-body text-xs font-semibold uppercase tracking-widest ${isIssuerLayout ? "text-muted" : "text-charcoal/70"}`}>
+        <div
+          className={`mt-8 border-t pt-6 ${
+            isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"
+          }`}
+        >
+          <p
+            className={`mb-2 font-body text-xs font-semibold uppercase tracking-widest ${
+              isIssuerLayout ? "text-muted" : "text-charcoal/70"
+            }`}
+          >
             Unsold Asset Balance
           </p>
           <EncryptedValue />
@@ -163,7 +238,15 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
       ) : null}
 
       {/* Embedded Action Panel */}
-      {action ? <div className={`mt-8 border-t pt-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>{action}</div> : null}
+      {action ? (
+        <div
+          className={`mt-8 border-t pt-6 ${
+            isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"
+          }`}
+        >
+          {action}
+        </div>
+      ) : null}
     </Card>
   );
 }

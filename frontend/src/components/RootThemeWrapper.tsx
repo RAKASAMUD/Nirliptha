@@ -2,6 +2,8 @@
 
 import { usePathname } from "next/navigation";
 
+import { SepoliaEnforcer } from "./SepoliaEnforcer";
+
 export function RootThemeWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isInvestorPage = pathname?.startsWith("/investor") || pathname?.startsWith("/login-investor");
@@ -14,6 +16,7 @@ export function RootThemeWrapper({ children }: { children: React.ReactNode }) {
           : "theme-dark bg-gradient-to-bl from-[#45000a] via-[#150004] to-[#000000] text-parchment"
       }`}
     >
+      <SepoliaEnforcer />
       {children}
     </div>
   );

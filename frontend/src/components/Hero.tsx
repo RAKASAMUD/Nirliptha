@@ -27,7 +27,7 @@ export function Hero() {
           had to come off `<main>` for this negative offset to actually
           render instead of being clipped; GradientBlinds already clips its
           own canvas internally, so nothing was relying on it. */}
-      <div className="absolute inset-x-0 -top-20 bottom-0 z-0 opacity-40">
+      <div className="absolute inset-x-0 -top-28 bottom-0 z-0 opacity-40">
         <GradientBlinds
           gradientColors={["#840016", "#000000"]}
           angle={0}
@@ -50,7 +50,7 @@ export function Hero() {
               </span>
               <span>
                 ublic{" "}
-                <span className="inline-block bg-white px-3 py-0.5 font-copeland font-normal text-oxblood">
+                <span className="inline-block bg-white px-3 py-1 font-copeland font-normal text-oxblood">
                   Confidence
                 </span>
               </span>
