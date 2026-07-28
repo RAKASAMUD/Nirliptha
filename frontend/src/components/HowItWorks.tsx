@@ -7,22 +7,22 @@ const STEPS = [
   {
     n: "01",
     title: "Create",
-    body: "The issuer opens an auction. Quantity, minimum price, and deadline are public by design.",
+    body: "Start an auction by setting the asset quantity, reserve price, and closing time.",
   },
   {
     n: "02",
     title: "Bid",
-    body: "Investors submit encrypted quantity and price. Deposits lock confidentially.",
+    body: "Choose how much you want to buy and the highest price you're willing to pay. Your bid stays private.",
   },
   {
     n: "03",
     title: "Compute",
-    body: "After the deadline, winners and the clearing price are computed inside a TEE.",
+    body: "When bidding closes, the final price and winning bids are calculated inside a trusted execution environment.",
   },
   {
     n: "04",
     title: "Settle",
-    body: "Winners claim tokens, losers get refunds. Ownership stays encrypted.",
+    body: "Winners receive their assets. Everyone else gets an automatic refund.",
   },
 ];
 
@@ -64,10 +64,10 @@ export function HowItWorks() {
         {/* LEFT COLUMN: TITLE & INTRO */}
         <div className="lg:col-span-5 lg:sticky lg:top-28">
           <h2 className="font-display text-4xl text-parchment md:text-5xl leading-tight tracking-tight mb-4">
-            Four steps, one transaction each
+            Four steps. One confidential auction.
           </h2>
           <p className="font-body text-muted text-sm md:text-base leading-relaxed">
-            A seamless, 4-phase primary issuance lifecycle with hardware-enforced confidentiality and uniform clearing prices.
+            From creating an auction to claiming your assets, every bid stays private until the auction ends.
           </p>
         </div>
 
