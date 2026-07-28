@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAccount, useWriteContract, usePublicClient, useWalletClient } from "wagmi";
 import { AUCTIONFACTORY_ABI, CASSET_ABI, AUCTION_ABI } from "@/lib/abis";
+import { saveOfferingTitle } from "@/lib/offeringTitles";
 import { CONTRACTS } from "@/lib/config";
 import { encryptUint } from "@/lib/nox";
 import { Card } from "./Card";
@@ -203,6 +204,9 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
         })) as `0x${string}`;
 
         setCreatedAuctionAddress(currentAuctionAddr);
+        if (assetName && assetName.trim()) {
+          saveOfferingTitle(currentAuctionAddr, assetName.trim());
+        }
       }
 
       // STEP 2: Secure Confidential Assets (Escrow Transfer)
@@ -280,8 +284,13 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
       <div className="flex flex-col gap-6 mb-6">
         <label id="field-assetName" className="flex flex-col gap-2">
           <span className="font-body text-xs font-semibold text-parchment/90 tracking-wide flex items-center justify-between">
-            <span>🏷️ Asset Title / Offering Name</span>
-            <span className="text-[10px] text-muted font-normal">Nama Aset RWA</span>
+            <span className="flex items-center gap-1.5">
+              <svg className="h-3.5 w-3.5 text-oxblood-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              <span>Asset Title / Offering Name</span>
+            </span>
+            <span className="text-[10px] text-muted font-normal">RWA Asset Title</span>
           </span>
           <input
             type="text"
@@ -323,7 +332,7 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
 
         <label id="field-reservePrice" className="flex flex-col gap-2">
           <span className="font-body text-xs font-semibold text-parchment/90 tracking-wide">
-            Reserve Price (cUSD)
+            Minimum Price (cUSD)
           </span>
           <input
             type="number"
@@ -343,7 +352,7 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
           />
           {fieldErrors.reservePrice ? (
             <span className="font-body text-[11px] text-rose-400/90 font-medium mt-0.5">
-              Reserve Price must be filled
+              Minimum Price must be filled
             </span>
           ) : null}
         </label>
@@ -432,7 +441,7 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
           </div>
           {fieldErrors.duration ? (
             <span className="font-body text-[11px] text-rose-400/90 font-medium mt-0.5">
-              ⚠️ Smart Contract Enforced: Durasi lelang minimal 5 menit (300 detik).
+              Smart Contract Enforced: Minimum auction duration is 5 minutes (300 seconds).
             </span>
           ) : null}
         </div>
@@ -524,7 +533,7 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
                     <span className="text-parchment font-semibold">{quantity} cASSET</span>
                   </div>
                   <div className="flex justify-between border-b border-white/5 pb-1.5">
-                    <span className="text-muted">Reserve Price:</span>
+                    <span className="text-muted">Minimum Price:</span>
                     <span className="text-parchment font-semibold">{reservePrice} cUSD</span>
                   </div>
                   <div className="flex justify-between border-b border-white/5 pb-1.5">
@@ -642,13 +651,13 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
                   </div>
                   <p className="font-body text-xs text-parchment/90 leading-relaxed">
                     {wizardStep === "step1"
-                      ? "Please approve prompt 1 in MetaMask to deploy your auction contract."
+                      ? "Please approve prompt 1 in your wallet to deploy your auction contract."
                       : wizardStep === "step2"
-                      ? "Please approve prompt 2 in MetaMask to deposit encrypted cASSET into escrow."
-                      : "Please approve prompt 3 in MetaMask to activate bidding."}
+                      ? "Please approve prompt 2 in your wallet to deposit encrypted cASSET into escrow."
+                      : "Please approve prompt 3 in your wallet to activate bidding."}
                   </p>
                   <p className="font-body text-[11px] text-emerald-400/80 font-medium pt-1 border-t border-emerald-500/20">
-                    💡 This is part of the 3-step setup. MetaMask will close automatically after signing.
+                    This is part of the 3-step setup. The wallet prompt will close automatically after signing.
                   </p>
                 </div>
 
@@ -792,7 +801,7 @@ export function CreateAuctionForm({ onCreated, onCancel, resumeAddress }: Props)
                     <span className="text-parchment font-semibold">{quantity} cASSET</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted">Reserve Price:</span>
+                    <span className="text-muted">Minimum Price:</span>
                     <span className="text-parchment font-semibold">{reservePrice} cUSD</span>
                   </div>
                 </div>

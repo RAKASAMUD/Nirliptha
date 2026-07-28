@@ -50,13 +50,18 @@ export function Navbar() {
       >
         <Link
           href="/"
-          className={`font-display text-2xl tracking-tight transition-colors ${
+          className={`flex items-center gap-2.5 font-display text-2xl tracking-tight transition-colors ${
             isInvestorPage
               ? "text-oxblood font-bold hover:text-charcoal"
               : "text-parchment hover:text-white"
           }`}
         >
-          NIRLIPTA
+          <img
+            src="/logo.png"
+            alt="Nirlipta"
+            className="h-8 w-8 object-contain rounded-full border border-oxblood/20 shadow-xs"
+          />
+          <span>NIRLIPTA</span>
         </Link>
         <div className="flex items-center gap-gutter">
           <SignInMenu isInvestorTheme={isInvestorPage} />

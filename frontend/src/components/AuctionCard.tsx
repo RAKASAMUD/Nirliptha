@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card } from "./Card";
 import { formatScaled, shortAddress } from "@/lib/format";
+import { getOfferingTitle } from "@/lib/offeringTitles";
 import { Countdown } from "./Countdown";
 import type { AuctionSummary } from "@/hooks/useAuctionList";
 
@@ -14,6 +16,12 @@ type Props = {
 export function AuctionCard({ auction, href, showIssuer = false, layout = "investor" }: Props) {
   const isSettled = auction.status === 3;
   const isIssuerLayout = layout === "issuer";
+
+  const [offeringTitle, setOfferingTitle] = useState("Asset Offering");
+
+  useEffect(() => {
+    setOfferingTitle(getOfferingTitle(auction.address));
+  }, [auction.address]);
 
   const getStatusBadge = () => {
     switch (auction.status) {
@@ -52,7 +60,7 @@ export function AuctionCard({ auction, href, showIssuer = false, layout = "inves
                 : "border-indigo-500/30 bg-indigo-50 text-indigo-700 shadow-xs"
             }`}
           >
-            ✓ Auction Settled
+            Auction Settled
           </span>
         );
       default:
@@ -122,7 +130,7 @@ export function AuctionCard({ auction, href, showIssuer = false, layout = "inves
                   : "text-charcoal group-hover:text-oxblood"
               }`}
             >
-              Asset Offering{" "}
+              {offeringTitle}{" "}
               <span className={`font-mono text-sm font-normal ${isIssuerLayout ? "text-muted" : "text-charcoal/60"}`}>
                 #{shortAddress(auction.address).slice(-4)}
               </span>

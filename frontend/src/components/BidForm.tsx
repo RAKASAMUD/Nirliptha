@@ -151,7 +151,6 @@ export function BidForm({ reservePrice, balance, onDecryptBalance, onSubmit, bid
         {/* ERROR MESSAGE ALERT INSIDE CARD */}
         {bidError && (
           <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-semibold text-rose-700 flex items-center gap-2 animate-in fade-in">
-            <span>⚠️</span>
             <span>{bidError}</span>
           </div>
         )}

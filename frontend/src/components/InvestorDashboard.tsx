@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAccount, usePublicClient } from "wagmi";
 import { CUSD_ABI, CASSET_ABI } from "@/lib/abis";
@@ -9,6 +9,7 @@ import { useAuction } from "@/hooks/useAuction";
 import { useBid } from "@/hooks/useBid";
 import { useDecrypt } from "@/hooks/useDecrypt";
 import { formatScaled, shortAddress } from "@/lib/format";
+import { getOfferingTitle } from "@/lib/offeringTitles";
 import { AuctionInfoCard } from "./AuctionInfoCard";
 import { StatusBar } from "./StatusBar";
 import { Countdown } from "./Countdown";
@@ -35,6 +36,12 @@ export function InvestorDashboard({ auctionAddress }: Props) {
   const bid = useBid(auctionAddress);
   const { decrypt, isDecrypting, error: decryptError } = useDecrypt();
   const publicClient = usePublicClient();
+
+  const [offeringTitle, setOfferingTitle] = useState("Asset Offering");
+
+  useEffect(() => {
+    setOfferingTitle(getOfferingTitle(auctionAddress));
+  }, [auctionAddress]);
 
   const [cUsdBalance, setCUsdBalance] = useState<bigint | null>(null);
   const [cAssetBalance, setCAssetBalance] = useState<bigint | null>(null);
@@ -137,7 +144,7 @@ export function InvestorDashboard({ auctionAddress }: Props) {
                 Private Asset Offering
               </span>
               <h1 className="font-display text-3xl md:text-5xl text-charcoal">
-                Asset Offering <span className="font-mono text-xl font-normal text-charcoal/60">#{shortAddress(auctionAddress).slice(-4)}</span>
+                {offeringTitle} <span className="font-mono text-xl font-normal text-charcoal/60">#{shortAddress(auctionAddress).slice(-4)}</span>
               </h1>
             </div>
             <ConnectButton />
@@ -206,7 +213,7 @@ export function InvestorDashboard({ auctionAddress }: Props) {
                   </span>
                 </div>
                 <h1 className="font-display text-3xl md:text-4xl text-charcoal">
-                  Asset Offering <span className="font-mono text-xl font-normal text-charcoal/60">#{shortAddress(auctionAddress).slice(-4)}</span>
+                  {offeringTitle} <span className="font-mono text-xl font-normal text-charcoal/60">#{shortAddress(auctionAddress).slice(-4)}</span>
                 </h1>
               </div>
 
@@ -393,20 +400,25 @@ export function InvestorDashboard({ auctionAddress }: Props) {
                           </div>
                         ) : null}
                         {allocQty === BigInt(0) ? (
-                          <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-50/70 p-3.5 font-body text-xs leading-relaxed text-amber-900">
-                            {belowReserve ? (
-                              <p className="font-medium text-amber-900">
-                                ⚠️ Harga penawaran kamu ({formatScaled(ownBid.p, auction.scale)} cUSD) berada di bawah harga minimum lelang ({formatScaled(auction.reservePrice, auction.scale)} cUSD).
-                              </p>
-                            ) : ownBid && ownBid.deposit === BigInt(0) ? (
-                              <p className="font-medium text-amber-900">
-                                ⚠️ <strong>Diskualifikasi Deposit (Anti-Shill Gate):</strong> Penawaran membutuhkan deposit <strong>{formatScaled(ownBid.q * ownBid.p, auction.scale)} cUSD</strong>, namun saldo cUSD di dompet saat bidding adalah <strong>0.00 cUSD</strong>. Lakukan swap ETH ➔ cUSD di menu Wallet terlebih dahulu.
-                              </p>
-                            ) : (
-                              <p className="font-medium text-amber-900">
-                                Persediaan aset lelang telah habis diserap oleh penawar dengan harga/prioritas lebih tinggi. Deposit kamu dikembalikan penuh.
-                              </p>
-                            )}
+                          <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-50/70 p-3.5 font-body text-xs leading-relaxed text-amber-900 flex items-start gap-2.5">
+                            <svg className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div>
+                              {belowReserve ? (
+                                <p className="font-medium text-amber-900">
+                                  Your bid price ({formatScaled(ownBid.p, auction.scale)} cUSD) is below the minimum auction price ({formatScaled(auction.reservePrice, auction.scale)} cUSD).
+                                </p>
+                              ) : ownBid && ownBid.deposit === BigInt(0) ? (
+                                <p className="font-medium text-amber-900">
+                                  <strong>Deposit Qualification Warning (Anti-Shill Gate):</strong> This bid requires a deposit of <strong>{formatScaled(ownBid.q * ownBid.p, auction.scale)} cUSD</strong>, but your wallet cUSD balance at bidding time was <strong>0.00 cUSD</strong>. Please swap ETH for cUSD in the Wallet menu first.
+                                </p>
+                              ) : (
+                                <p className="font-medium text-amber-900">
+                                  Auction asset supply was fully allocated to higher priority bids. Your deposit is fully refunded.
+                                </p>
+                              )}
+                            </div>
                           </div>
                         ) : null}
                       </div>
@@ -480,21 +492,21 @@ export function InvestorDashboard({ auctionAddress }: Props) {
             {auction.deadline ? (
               <div className="mb-6 flex flex-col gap-2 rounded-[16px] border border-emerald-500/20 bg-emerald-50/50 p-4 font-body text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-emerald-950">Status Penawaran:</span>
-                  <span className="font-bold text-emerald-700">✓ Sealed &amp; Escrowed</span>
+                  <span className="font-medium text-emerald-950">Bid Status:</span>
+                  <span className="font-bold text-emerald-700">Sealed &amp; Escrowed</span>
                 </div>
                 {isDeadlinePassed ? (
                   <div className="flex items-center justify-between pt-2 border-t border-emerald-500/10">
-                    <span className="font-medium text-amber-900">Batas Waktu Finalisasi Issuer (24 Jam):</span>
+                    <span className="font-medium text-amber-900">Issuer Finalization Deadline (24h):</span>
                     <span className="font-mono font-bold text-amber-800">
                       {Math.floor(Date.now() / 1000) > Number(auction.deadline) + 86400
-                        ? "⚠️ Expiry Window Passed (> 24h)"
-                        : "⏱ Active Finalization Window"}
+                        ? "Expiry Window Passed (> 24h)"
+                        : "Active Finalization Window"}
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between pt-2 border-t border-emerald-500/10">
-                    <span className="font-medium text-emerald-950">Sisa Waktu Penawaran:</span>
+                    <span className="font-medium text-emerald-950">Time Remaining:</span>
                     <Countdown deadline={auction.deadline} className="text-xs text-emerald-900 font-bold" />
                   </div>
                 )}
@@ -505,20 +517,20 @@ export function InvestorDashboard({ auctionAddress }: Props) {
             {isDeadlinePassed && Math.floor(Date.now() / 1000) > Number(auction.deadline) + 86400 ? (
               <div className="mb-6 rounded-2xl border border-rose-500/30 bg-rose-50 p-5 flex flex-col gap-3 font-body">
                 <div className="flex items-center gap-2 text-rose-700 font-bold text-xs">
-                  <span>🚨 Emergency Refund Option Available</span>
+                  <span>Emergency Refund Option Available</span>
                 </div>
                 <p className="text-xs text-rose-900/80 leading-relaxed">
-                  Issuer tidak melakukan finalisasi lelang dalam batas waktu 1x24 jam. Kamu dapat menarik kembali 100% deposit cUSD yang terkunci secara otomatis.
+                  Issuer did not finalize the auction within the 24-hour window. You can reclaim 100% of your locked cUSD deposit.
                 </p>
                 <button
                   type="button"
                   onClick={() => {
-                    alert("Pengembalian dana deposit cUSD darurat berhasil diproses! Saldo cUSD dikembalikan ke dompet kamu.");
+                    alert("Emergency cUSD deposit refund successfully processed! Balance restored to your wallet.");
                     auction.refetch();
                   }}
                   className="w-full rounded-full bg-rose-600 py-3 px-5 text-xs font-bold text-white shadow-md hover:bg-rose-700 transition-all cursor-pointer"
                 >
-                  Tarik Kembali Deposit cUSD Saya
+                  Reclaim My cUSD Deposit
                 </button>
               </div>
             ) : null}

@@ -1,9 +1,12 @@
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Card } from "./Card";
 import { DataRow } from "./DataRow";
 import { EncryptedValue } from "./EncryptedValue";
 import { Countdown } from "./Countdown";
 import { StatusBar } from "./StatusBar";
 import { formatScaled, shortAddress, etherscanTx } from "@/lib/format";
+import { getOfferingTitle } from "@/lib/offeringTitles";
 import type { useAuction } from "@/hooks/useAuction";
 
 type Props = {
@@ -18,6 +21,12 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
   const isSettled = auction.status === 3;
   const isIssuerLayout = layout === "issuer";
   const displayAddress = auctionAddress || auction.safeAddress;
+
+  const [offeringTitle, setOfferingTitle] = useState("Asset Offering");
+
+  useEffect(() => {
+    setOfferingTitle(getOfferingTitle(displayAddress));
+  }, [displayAddress]);
 
   const renderStatusBadge = () => {
     switch (auction.status) {
@@ -38,7 +47,7 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
       case 3:
         return (
           <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/40 bg-indigo-500/10 px-4 py-1.5 font-body text-xs font-semibold tracking-wider text-indigo-300 uppercase">
-            ✓ Auction Settled
+            Auction Settled
           </span>
         );
       default:
@@ -52,11 +61,28 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
 
   return (
     <Card className={isIssuerLayout ? "p-8 md:p-10 shadow-2xl bg-surface border-hairline-strong" : "p-8 md:p-10 shadow-xl bg-white/95 border-oxblood/15"}>
+      {/* Back Button */}
+      <div className="mb-6">
+        <Link
+          href={isIssuerLayout ? "/issuer" : "/investor"}
+          className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-body text-xs font-semibold transition-all duration-300 ${
+            isIssuerLayout
+              ? "border-hairline-strong bg-white/5 text-parchment hover:bg-white/10 hover:border-oxblood/40 hover:text-oxblood-light"
+              : "border-oxblood/20 bg-white/90 text-charcoal hover:bg-white hover:border-oxblood/40 hover:text-oxblood"
+          }`}
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Back to {isIssuerLayout ? "Issuer Dashboard" : "Asset Offerings"}
+        </Link>
+      </div>
+
       {/* Top Header Row */}
       <div className={`mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-6 ${isIssuerLayout ? "border-hairline-strong" : "border-oxblood/10"}`}>
         <div>
           <h2 className={`font-display text-3xl md:text-4xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
-            Asset Offering <span className="font-mono text-xl font-normal opacity-70">#{shortAddress(displayAddress).slice(-4)}</span>
+            {offeringTitle} <span className="font-mono text-xl font-normal opacity-70">#{shortAddress(displayAddress).slice(-4)}</span>
           </h2>
           {displayAddress ? (
             <a

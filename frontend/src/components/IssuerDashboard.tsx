@@ -51,7 +51,7 @@ export function IssuerDashboard({ auctionAddress }: Props) {
 
   async function runAction(label: string, fn: () => Promise<void>) {
     if (!isIssuer) {
-      setActionError("Smart Contract Enforced: Dompet yang terhubung bukan Issuer pembuat lelang ini.");
+      setActionError("Smart Contract Enforced: Connected wallet is not the authorized Issuer for this auction.");
       return;
     }
     setActionError(null);
@@ -79,41 +79,41 @@ export function IssuerDashboard({ auctionAddress }: Props) {
 
   async function handleCancelAuction() {
     if (!isIssuer) {
-      setActionError("Smart Contract Enforced: Dompet yang terhubung bukan Issuer pembuat lelang ini.");
+      setActionError("Smart Contract Enforced: Connected wallet is not the authorized Issuer for this auction.");
       return;
     }
     setActionError(null);
-    setActionStep("⏳ Mengirim transaksi ke blockchain...");
+    setActionStep("Sending transaction to blockchain...");
     try {
       if (auction.status === 0) {
-        setActionStep("⏳ Memanggil abandonEscrow()...");
+        setActionStep("Calling abandonEscrow()...");
         const hash = await writeContractAsync({
           address: auctionAddress,
           abi: AUCTION_ABI,
           functionName: "abandonEscrow",
         });
-        setActionStep("⏳ Menunggu konfirmasi block...");
+        setActionStep("Awaiting block confirmation...");
         await publicClient?.waitForTransactionReceipt({ hash });
       } else if (auction.status === 1 && auction.bidCount === 0) {
-        setActionStep("⏳ Memanggil recoverAssetIfNoBids()...");
+        setActionStep("Calling recoverAssetIfNoBids()...");
         const hash = await writeContractAsync({
           address: auctionAddress,
           abi: AUCTION_ABI,
           functionName: "recoverAssetIfNoBids",
         });
-        setActionStep("⏳ Menunggu konfirmasi block...");
+        setActionStep("Awaiting block confirmation...");
         await publicClient?.waitForTransactionReceipt({ hash });
       } else if (auction.status === 1) {
-        setActionStep("⏳ Memanggil finalize()...");
+        setActionStep("Calling finalize()...");
         const hashFin = await writeContractAsync({
           address: auctionAddress,
           abi: AUCTION_ABI,
           functionName: "finalize",
         });
-        setActionStep("⏳ Menunggu konfirmasi block...");
+        setActionStep("Awaiting block confirmation...");
         await publicClient?.waitForTransactionReceipt({ hash: hashFin });
       }
-      setActionStep("✅ Berhasil! cASSET dikembalikan ke Safe Treasury. Mengarahkan...");
+      setActionStep("Success! cASSET returned to Safe Treasury. Redirecting...");
       await new Promise((r) => setTimeout(r, 1800));
       router.push("/issuer");
     } catch (err) {
@@ -218,39 +218,38 @@ export function IssuerDashboard({ auctionAddress }: Props) {
       {auction.status === 0 && isIssuer && (
         <div className="mb-6 rounded-[20px] border border-amber-500/40 bg-amber-500/10 p-6 flex flex-col gap-5 font-body">
           <div className="flex items-start gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-lg">⚠️</span>
             <div>
-              <h3 className="font-display text-xl text-parchment">Setup Tidak Lengkap</h3>
+              <h3 className="font-display text-xl text-parchment">Incomplete Setup</h3>
               <p className="mt-1 text-xs text-amber-300/80 leading-relaxed">
-                Kontrak lelang sudah terdeploy di blockchain, namun proses setup belum selesai.
-                Escrow collateral (<strong className="text-parchment">cASSET</strong>) belum dikonfirmasi —
-                lelang belum aktif dan investor belum bisa melakukan bid.
+                The auction contract is deployed on-chain, but setup is not complete.
+                Escrow collateral (<strong className="text-parchment">cASSET</strong>) has not been confirmed —
+                the auction is not yet active for bidding.
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="rounded-[14px] border border-amber-500/20 bg-black/30 p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-400 mb-1">Opsi 1 — Lanjutkan</p>
-              <p className="text-xs text-muted mb-3">Selesaikan escrow dan aktivasi lelang agar investor bisa mulai bid.</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-400 mb-1">Option 1 — Resume</p>
+              <p className="text-xs text-muted mb-3">Complete escrow and activate auction so investors can start bidding.</p>
               <button
                 disabled={actionStep !== null}
                 onClick={() => router.push(`/issuer?resume=${auctionAddress}`)}
                 className="w-full rounded-full bg-amber-500 text-charcoal py-2.5 px-5 text-xs font-bold hover:bg-amber-400 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {actionStep ?? "▶ Resume Setup"}
+                {actionStep ?? "Resume Setup"}
               </button>
             </div>
 
             <div className="rounded-[14px] border border-rose-500/20 bg-black/30 p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-400 mb-1">Opsi 2 — Batalkan</p>
-              <p className="text-xs text-muted mb-3">Tarik kembali aset jika sudah ditransfer, lalu hapus lelang ini dari dashboard.</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-400 mb-1">Option 2 — Cancel</p>
+              <p className="text-xs text-muted mb-3">Recover assets if transferred, then remove this auction from dashboard.</p>
               <button
                 disabled={actionStep !== null}
                 onClick={() => setShowCancelModal(true)}
                 className="w-full rounded-full border border-rose-500/40 bg-rose-500/10 text-rose-300 py-2.5 px-5 text-xs font-bold hover:bg-rose-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {actionStep ?? "🚫 Abandon & Recover Aset"}
+                {actionStep ?? "Abandon & Recover Asset"}
               </button>
             </div>
           </div>
@@ -263,15 +262,12 @@ export function IssuerDashboard({ auctionAddress }: Props) {
 
       {!isIssuer && auction.issuer && auction.issuer !== "0x0000000000000000000000000000000000000000" && (
         <div className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5 flex items-center gap-3 font-body animate-in fade-in">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 font-bold text-sm">
-            ⚠️
-          </span>
           <div>
             <h4 className="font-bold text-sm text-parchment">
-              Mode Pratinjau (Read-Only Preview)
+              Preview Mode (Read-Only Preview)
             </h4>
             <p className="text-xs text-muted mt-0.5">
-              Dompet terhubung kamu (<span className="font-mono text-parchment font-semibold">{shortAddress(address || "")}</span>) bukan Issuer pembuat lelang ini. Hak akses finalisasi hanya dimiliki oleh dompet Issuer pembuat ({shortAddress(auction.issuer)}).
+              Your connected wallet (<span className="font-mono text-parchment font-semibold">{shortAddress(address || "")}</span>) is not the Issuer for this auction. Finalization access belongs to the Issuer wallet ({shortAddress(auction.issuer)}).
             </p>
           </div>
         </div>
@@ -315,24 +311,24 @@ export function IssuerDashboard({ auctionAddress }: Props) {
                         <div className="flex flex-col items-center gap-1 text-center font-body text-xs">
                           <p className="text-amber-400/90 font-medium flex items-center gap-1.5">
                             <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                            Smart Contract Enforced: Finalisasi aktif begitu durasi lelang habis.
+                            Smart Contract Enforced: Finalization unlocks when auction duration expires.
                           </p>
                           <p className="text-muted/70 text-[11px]">
-                            💡 Tip Demo: Buat lelang baru dengan durasi 10s / 1m jika ingin pengujian cepat.
+                            Demo Tip: Create a new auction with a 10s or 1m duration for fast testing.
                           </p>
                         </div>
                       ) : !hasBids ? (
                         <div className="flex flex-col items-center gap-3 w-full text-center font-body text-xs mt-1">
                           <p className="text-amber-300 font-medium flex items-center justify-center gap-1.5">
                             <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                            Lelang Berakhir Tanpa Penawaran (0 Bids Received)
+                            Auction Ended Without Bids (0 Bids Received)
                           </p>
                           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 w-full">
                             <button
                               onClick={() => setShowCancelModal(true)}
                               className="w-full sm:w-auto rounded-full bg-rose-500/20 border border-rose-500/40 px-4 py-2 text-xs font-semibold text-rose-200 hover:bg-rose-500/30 transition-all cursor-pointer"
                             >
-                              🚫 Batalkan &amp; Tarik cASSET
+                              Cancel &amp; Recover cASSET
                             </button>
                           </div>
                         </div>
@@ -340,10 +336,10 @@ export function IssuerDashboard({ auctionAddress }: Props) {
                         <div className="flex flex-col items-center gap-1.5 text-center font-body text-xs">
                           <p className="text-rose-400 font-bold flex items-center gap-1.5">
                             <span className="h-2 w-2 rounded-full bg-rose-400 animate-pulse" />
-                            ⚠️ Batas Waktu Finalisasi (1x24 Jam) Telah Habis!
+                            Finalization Window (24 Hours) Expired!
                           </p>
                           <p className="text-muted/70 text-[11px]">
-                            Sistem secara otomatis membuka opsi pengembalian dana darurat (Emergency Refund) untuk Investor.
+                            The system has enabled Emergency Refund options for Investors.
                           </p>
                         </div>
                       ) : (
@@ -353,7 +349,7 @@ export function IssuerDashboard({ auctionAddress }: Props) {
                             Deadline passed &amp; bids received! Click Finalize to initiate TEE resolution.
                           </p>
                           <p className="text-amber-400/90 text-[11px] font-mono">
-                            ⏱ Sisa Waktu Finalisasi Issuer: {formatDuration(remainingFinalizeSecs)} (Maks. 1x24 Jam)
+                            Issuer Finalization Time Remaining: {formatDuration(remainingFinalizeSecs)} (Max 24h)
                           </p>
                         </div>
                       )}
@@ -422,20 +418,20 @@ export function IssuerDashboard({ auctionAddress }: Props) {
           <Card className="w-full max-w-md p-8 border border-rose-500/30 bg-surface shadow-2xl rounded-[24px] flex flex-col gap-6">
             <div>
               <span className="inline-block mb-2 rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 font-body text-[11px] font-bold text-rose-300 uppercase tracking-wider">
-                {auction.status === 0 ? "🚫 Abandon Setup" : "🚫 Batalkan Lelang"}
+                {auction.status === 0 ? "Abandon Setup" : "Cancel Auction"}
               </span>
               <h3 className="font-display text-3xl text-parchment">
-                {auction.status === 0 ? "Abandon & Recover cASSET?" : "Batalkan & Tarik cASSET?"}
+                {auction.status === 0 ? "Abandon & Recover cASSET?" : "Cancel & Recover cASSET?"}
               </h3>
               <p className="mt-2 text-xs text-muted leading-relaxed">
                 {auction.status === 0
-                  ? <>Memanggil <code className="text-rose-300">abandonEscrow()</code> — mengembalikan cASSET yang sudah ditransfer di Step 2 (jika ada) ke Safe Treasury Issuer. Status berubah ke Settled.</>  
-                  : <>Memanggil <code className="text-rose-300">recoverAssetIfNoBids()</code> — mengembalikan 100% cASSET (<strong className="text-parchment">{auction.quantity.toLocaleString()} cASSET</strong>) ke Safe Treasury Issuer. Status berubah ke Settled.</>}
+                  ? <>Executing <code className="text-rose-300">abandonEscrow()</code> — returning transferred cASSET to Issuer Safe Treasury. Status updates to Settled.</>  
+                  : <>Executing <code className="text-rose-300">recoverAssetIfNoBids()</code> — returning 100% cASSET (<strong className="text-parchment">{auction.quantity.toLocaleString()} cASSET</strong>) to Issuer Safe Treasury. Status updates to Settled.</>}
               </p>
             </div>
 
             <div className="rounded-xl border border-hairline bg-white/5 p-4 text-xs">
-              <span className="text-muted block text-[11px] font-medium uppercase mb-1">Safe Treasury Tujuan:</span>
+              <span className="text-muted block text-[11px] font-medium uppercase mb-1">Destination Safe Treasury:</span>
               <span className="font-mono text-parchment font-semibold">{auction.safeAddress}</span>
             </div>
 
@@ -445,7 +441,7 @@ export function IssuerDashboard({ auctionAddress }: Props) {
                 onClick={() => setShowCancelModal(false)}
                 className="flex-1 rounded-full border border-hairline-strong py-3 px-5 font-body text-xs font-medium text-parchment transition-all hover:bg-white/10 cursor-pointer"
               >
-                Batal
+                Cancel
               </button>
               <button
                 type="button"

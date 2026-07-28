@@ -7,7 +7,7 @@ const STEPS = [
   {
     n: "01",
     title: "Create",
-    body: "The issuer opens an auction. Quantity, reserve price, and deadline are public by design.",
+    body: "The issuer opens an auction. Quantity, minimum price, and deadline are public by design.",
   },
   {
     n: "02",

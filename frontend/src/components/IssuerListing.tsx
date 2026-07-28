@@ -10,6 +10,7 @@ import { Button } from "./Button";
 import { Card } from "./Card";
 import { AuthHero } from "./AuthHero";
 import { IssuerWalletPanel } from "./IssuerWalletPanel";
+import { getOfferingTitle } from "@/lib/offeringTitles";
 
 // /issuer landing: "your auctions" (filtered by AuctionFactory being
 // permissionless — issuer = whoever's connected, not a fixed address) +
@@ -122,7 +123,7 @@ export function IssuerListing() {
             >
               <div>
                 <p className="text-sm font-semibold text-parchment">
-                  Asset Offering{" "}
+                  {getOfferingTitle(a.address)}{" "}
                   <span className="font-mono text-xs text-muted">#{a.address.slice(-4)}</span>
                 </p>
                 <p className="mt-0.5 text-[11px] text-amber-300/80">

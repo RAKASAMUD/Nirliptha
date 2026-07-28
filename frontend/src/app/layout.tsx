@@ -41,9 +41,14 @@ const copeland = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Nirlipta | Sealed-Bid Auction Protocol",
+  title: "Nirlipta",
   description:
     "Confidential sealed-bid, uniform-price auction for RWA primary issuance on Nox Protocol.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

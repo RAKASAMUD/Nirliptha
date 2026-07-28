@@ -221,7 +221,7 @@ export function InvestorWallet() {
                 Wrong Network Detected: {chain?.name || "Monad Testnet"}
               </h4>
               <p className="text-xs text-charcoal/70 mt-0.5">
-                Nirlipta operates on <strong className="text-oxblood font-bold">Sepolia Testnet (ETH)</strong>. Please switch MetaMask to Sepolia.
+                Nirlipta operates on <strong className="text-oxblood font-bold">Sepolia Testnet (ETH)</strong>. Please switch your wallet to Sepolia.
               </p>
             </div>
           </div>
@@ -334,7 +334,7 @@ export function InvestorWallet() {
               onClick={handleImportTokenToMetaMask}
               className="text-oxblood/80 font-semibold hover:text-oxblood hover:underline text-[11px] inline-flex items-center gap-1 cursor-pointer"
             >
-              + Import cUSD token to MetaMask 🦊
+              + Import cUSD token to Wallet
             </button>
           </div>
           {decryptError && (
@@ -459,7 +459,7 @@ export function InvestorWallet() {
 
                     <div className="mb-4">
                       <span className="text-[11px] font-bold text-charcoal/50 uppercase tracking-wider block">
-                        Reserve Price
+                        Minimum Price
                       </span>
                       <span className="font-display text-xl text-oxblood font-bold">
                         {formatScaled(a.reservePrice, a.scale)} cUSD
