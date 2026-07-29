@@ -3,26 +3,42 @@ import fs from "fs";
 import path from "path";
 
 // Define path to the JSON file where titles will be saved.
-// Storing it outside 'src' to avoid triggering hot reload on every save, 
-// but for simplicity we can store it in the project root.
-const DB_PATH = path.join(process.cwd(), "titles-db.json");
+// On Vercel, the filesystem is read-only except for /tmp.
+const isVercel = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+const DB_PATH = isVercel 
+  ? path.join("/tmp", "titles-db.json") 
+  : path.join(process.cwd(), "titles-db.json");
+
+// In-memory fallback for Vercel (survives warm serverless invocations)
+let memoryDB: Record<string, string> = {};
+let isMemoryInitialized = false;
 
 // Helper to read DB
 function readDB() {
+  if (isMemoryInitialized) return memoryDB;
+
   if (!fs.existsSync(DB_PATH)) {
-    return {};
+    return memoryDB;
   }
   try {
     const data = fs.readFileSync(DB_PATH, "utf-8");
-    return JSON.parse(data);
+    memoryDB = JSON.parse(data);
+    isMemoryInitialized = true;
+    return memoryDB;
   } catch (err) {
-    return {};
+    return memoryDB;
   }
 }
 
 // Helper to write DB
 function writeDB(data: any) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
+  memoryDB = data;
+  isMemoryInitialized = true;
+  try {
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch (e) {
+    console.error("Vercel filesystem write error, relying on memory:", e);
+  }
 }
 
 export async function GET() {
