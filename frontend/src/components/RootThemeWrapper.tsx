@@ -12,6 +12,22 @@ export function RootThemeWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     syncOfferingTitles();
+
+    // Listen for cross-tab changes (e.g. Issuer creates auction in Tab A, Investor views in Tab B)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "offering_titles_registry") {
+        syncOfferingTitles();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    // Poll API every 15 seconds so different browsers/devices auto-sync titles!
+    const intervalId = setInterval(syncOfferingTitles, 15000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      clearInterval(intervalId);
+    };
   }, []);
 
   return (

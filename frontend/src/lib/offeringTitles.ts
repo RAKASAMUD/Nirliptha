@@ -36,6 +36,22 @@ export async function syncOfferingTitles() {
       if (updated) {
         localStorage.setItem("offering_titles_registry", JSON.stringify(registry));
       }
+
+      // 3. Retro-sync: upload any local titles that the server is missing (e.g. from before the API existed)
+      let retroSynced = false;
+      for (const [address, title] of Object.entries(registry)) {
+        if (!db[address]) {
+          fetch("/api/titles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ address, title }),
+          }).catch(err => console.error("Retro-sync failed:", err));
+          retroSynced = true;
+        }
+      }
+      
+      // If we did a retro-sync, force a re-fetch in a moment so other tabs can get it
+      // though typically this tab is the source of truth for these missing ones.
     }
   } catch (error) {
     console.error("Failed to sync offering titles from server:", error);
