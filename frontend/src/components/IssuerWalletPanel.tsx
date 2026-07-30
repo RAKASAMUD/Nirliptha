@@ -32,19 +32,14 @@ export function IssuerWalletPanel() {
   const cusdHandle = cusdData?.[0]?.result as `0x${string}` | undefined;
 
   const handleDecryptCusd = async () => {
-    const storedBal = typeof window !== "undefined" && address ? localStorage.getItem(`cusd_bal_${address.toLowerCase()}`) : null;
-
     if (!cusdHandle || cusdHandle === "0x0000000000000000000000000000000000000000000000000000000000000000") {
-      setDecryptedCusd(storedBal ? parseFloat(storedBal).toFixed(2) : "0.00");
+      setDecryptedCusd("0.00");
       return;
     }
     const val = await decrypt(cusdHandle);
     if (val !== null) {
       const onChainVal = parseFloat(formatScaled(val, BigInt(1_000_000)));
-      const extraVal = storedBal ? parseFloat(storedBal) : 0;
-      setDecryptedCusd((onChainVal + extraVal).toFixed(2));
-    } else if (storedBal) {
-      setDecryptedCusd(parseFloat(storedBal).toFixed(2));
+      setDecryptedCusd(onChainVal.toFixed(2));
     }
   };
 

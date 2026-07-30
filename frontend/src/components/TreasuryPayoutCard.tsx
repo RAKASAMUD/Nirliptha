@@ -80,16 +80,7 @@ export function TreasuryPayoutCard({
           ...prev,
         ]);
       }
-      // Credit withdrawn cUSD proceeds to the Issuer's wallet balance
-      if (typeof window !== "undefined" && safeAddress) {
-        const numProceeds = parseFloat(estimatedProceeds.replace(/,/g, ""));
-        if (!isNaN(numProceeds) && numProceeds > 0) {
-          const key = `cusd_bal_${safeAddress.toLowerCase()}`;
-          const currentBal = parseFloat(localStorage.getItem(key) || "0");
-          const newBal = (currentBal + numProceeds).toFixed(2);
-          localStorage.setItem(key, newBal);
-        }
-      }
+      // Removed local mock balance increment. Users must re-decrypt their on-chain balance.
 
       setShowSuccessModal(true);
     } catch {
