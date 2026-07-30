@@ -34,6 +34,8 @@ contract Auction is ReentrancyGuard {
     AuctionTypes.Status public status;
     uint256 public clearingPrice;           // set in completeSettlement(), 0 until then
     euint256 private clearingPriceHandle;   // set in finalize(); consumed by completeSettlement()
+    euint256 private revenueHandle;         // total proceeds set in finalize(); used in withdrawToSafe()
+    bool public issuerWithdrawn;
 
     AuctionTypes.BidRecord[] public bids;
     mapping(address => uint256) public bidderIndex; // 1-indexed; 0 = not bid
@@ -254,13 +256,20 @@ contract Auction is ReentrancyGuard {
         // --- Step E: Find clearing price = min P among bids with alloc > 0 ---
         euint256 encMaxUint = Nox.toEuint256(type(uint128).max); // large sentinel
         euint256 minWinningP = encMaxUint;
+        euint256 totalAllocated = Nox.toEuint256(0);
         for (uint256 i = 0; i < N; i++) {
+            totalAllocated = Nox.add(totalAllocated, alloc[i]);
+            Nox.allowThis(totalAllocated);
+            
             ebool hasAlloc = Nox.gt(alloc[i], encZero);
             euint256 candidateP = Nox.select(hasAlloc, bids[i].handleP, encMaxUint);
             ebool isSmaller = Nox.lt(candidateP, minWinningP);
             minWinningP = Nox.select(isSmaller, candidateP, minWinningP);
         }
         Nox.allowThis(minWinningP);
+        
+        revenueHandle = Nox.mul(totalAllocated, minWinningP);
+        Nox.allowThis(revenueHandle);
 
         // --- Step F: Mark for reveal (does NOT decrypt here — see completeSettlement) ---
         Nox.allowPublicDecryption(minWinningP);
@@ -332,12 +341,13 @@ contract Auction is ReentrancyGuard {
         emit Claimed(msg.sender);
     }
 
-    /// @notice Issuer withdraws all remaining cUSD (settlement revenue) to Safe.
-    ///         Call after all bidders have claimed.
+    /// @notice Issuer withdraws only the exact auction revenue to Safe.
+    ///         Can be called anytime after settlement without disrupting investors.
     function withdrawToSafe() external nonReentrant onlyIssuer onlySettled {
-        euint256 balance = cUSD.confidentialBalanceOf(address(this));
-        Nox.allowThis(balance);
-        cUSD.confidentialTransfer(safe, balance);
+        require(!issuerWithdrawn, "Already withdrawn");
+        issuerWithdrawn = true;
+        Nox.allowTransient(revenueHandle, address(cUSD));
+        cUSD.confidentialTransfer(safe, revenueHandle);
         emit WithdrawnToSafe(safe);
     }
 
