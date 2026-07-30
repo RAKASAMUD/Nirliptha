@@ -133,6 +133,8 @@ export function IssuerDashboard({ auctionAddress }: Props) {
     await runAction("Revealing clearing price...", async () => {
       const activeWallet = await getOrFetchWalletClient(walletClient, address);
       if (!activeWallet) throw new Error("Connect your wallet first.");
+      
+      setActionStep("Fetching clearing price handle...");
       const clearingPriceHandle = (await publicClient?.readContract({
         address: auctionAddress,
         abi: AUCTION_ABI,
@@ -140,21 +142,30 @@ export function IssuerDashboard({ auctionAddress }: Props) {
       })) as `0x${string}`;
       
       let proof: `0x${string}` | null = null;
-      for (let attempt = 0; attempt < 6 && !proof; attempt++) {
+      const MAX_ATTEMPTS = 15;
+      
+      for (let attempt = 0; attempt < MAX_ATTEMPTS && !proof; attempt++) {
         try {
+          setActionStep(`Waiting for Nox TEE Oracle (Attempt ${attempt + 1}/${MAX_ATTEMPTS}). This usually takes 1-3 mins...`);
           const result = await publicDecryptHandle(activeWallet, clearingPriceHandle);
           proof = result.proof as `0x${string}`;
-        } catch {
+        } catch (e) {
+          console.log("publicDecryptHandle failed, retrying in 10s...", e);
           await new Promise((r) => setTimeout(r, 10_000));
         }
       }
-      if (!proof) throw new Error("Gateway did not index the handle in time — try again.");
+      
+      if (!proof) throw new Error("Gateway did not index the handle in time — please click Reveal again.");
+      
+      setActionStep("Proof received! Sending settlement transaction...");
       const hash = await writeContractAsync({
         address: auctionAddress,
         abi: AUCTION_ABI,
         functionName: "completeSettlement",
         args: [proof],
       });
+      
+      setActionStep("Awaiting block confirmation...");
       await publicClient?.waitForTransactionReceipt({ hash });
     });
   }
