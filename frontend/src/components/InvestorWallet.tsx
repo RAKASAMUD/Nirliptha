@@ -171,6 +171,15 @@ export function InvestorWallet() {
       }
 
       setSwapSuccess(`Successfully swapped ${ethVal} Sepolia ETH ➔ Received ${numCusd.toLocaleString()} cUSD!`);
+      
+      // Optimistically update the decrypted balance UI without requiring another signature
+      if (decryptedCusd !== null) {
+        setDecryptedCusd((parseFloat(decryptedCusd) + numCusd).toFixed(2));
+      } else {
+        // If they haven't decrypted yet, at least show what they just swapped for
+        setDecryptedCusd(numCusd.toFixed(2));
+      }
+      
       refetchCusd();
       refetchEth();
     } catch (err) {
