@@ -101,10 +101,7 @@ export function AuctionInfoCard({ auction, auctionAddress, layout = "issuer", ac
       >
         <div>
           <h2 className={`font-display text-3xl md:text-4xl ${isIssuerLayout ? "text-parchment" : "text-charcoal"}`}>
-            {offeringTitle}{" "}
-            <span className="font-mono text-xl font-normal opacity-70">
-              #{shortAddress(displayAddress).slice(-4)}
-            </span>
+            {offeringTitle}
           </h2>
           {displayAddress ? (
             <a

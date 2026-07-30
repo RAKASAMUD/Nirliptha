@@ -1,6 +1,6 @@
 "use client";
 
-import { useReadContracts } from "wagmi";
+import { useReadContracts, useAccount } from "wagmi";
 import { AUCTIONFACTORY_ABI, AUCTION_ABI } from "@/lib/abis";
 import { CONTRACTS } from "@/lib/config";
 
@@ -13,10 +13,12 @@ export type AuctionSummary = {
   deadline: bigint;
   scale: bigint;
   clearingPrice: bigint;
+  hasBid: boolean;
+  hasClaimed: boolean;
 };
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as const;
-const SUMMARY_FIELDS_PER_AUCTION = 7;
+const SUMMARY_FIELDS_PER_AUCTION = 9;
 
 // Three dependent reads: auctionCount() -> auctions(0..count-1) -> a
 // per-address summary multicall. Each stage is its own useReadContracts
@@ -25,6 +27,8 @@ const SUMMARY_FIELDS_PER_AUCTION = 7;
 // — all hook calls stay unconditional, so this doesn't violate
 // rules-of-hooks even though the contracts array length is dynamic.
 export function useAuctionList() {
+  const { address } = useAccount();
+
   const { data: countData, isLoading: countLoading } = useReadContracts({
     contracts: [
       { address: CONTRACTS.factory as `0x${string}`, abi: AUCTIONFACTORY_ABI, functionName: "auctionCount" },
@@ -58,6 +62,8 @@ export function useAuctionList() {
       { address, abi: AUCTION_ABI, functionName: "deadline" as const },
       { address, abi: AUCTION_ABI, functionName: "SCALE" as const },
       { address, abi: AUCTION_ABI, functionName: "clearingPrice" as const },
+      { address, abi: AUCTION_ABI, functionName: "bidderIndex" as const, args: [address ?? ZERO_ADDRESS] },
+      { address, abi: AUCTION_ABI, functionName: "allocations" as const, args: [address ?? ZERO_ADDRESS] },
     ]),
     query: { enabled: addresses.length > 0, refetchInterval: 15_000, refetchOnMount: "always", staleTime: 0 },
   });
@@ -73,6 +79,8 @@ export function useAuctionList() {
       deadline: (summaryData?.[base + 4]?.result as bigint) ?? BigInt(0),
       scale: (summaryData?.[base + 5]?.result as bigint) ?? BigInt(1_000_000),
       clearingPrice: (summaryData?.[base + 6]?.result as bigint) ?? BigInt(0),
+      hasBid: ((summaryData?.[base + 7]?.result as bigint) ?? BigInt(0)) > BigInt(0),
+      hasClaimed: (summaryData?.[base + 8]?.result as readonly [`0x${string}`, boolean] | undefined)?.[1] ?? false,
     };
   });
 

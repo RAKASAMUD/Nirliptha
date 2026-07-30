@@ -23,5 +23,5 @@ export function LiveAuctionInfoCard({ address, layout }: Props) {
     );
   }
 
-  return <AuctionInfoCard auction={auction} layout={layout} />;
+  return <AuctionInfoCard auction={auction} auctionAddress={address} layout={layout} />;
 }

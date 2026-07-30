@@ -1,4 +1,5 @@
 "use client";
+import { supabase } from "./supabase";
 
 // Fallback generic title if the title cannot be found in local storage or API
 const DEFAULT_TITLE = "Private Asset Offering";
@@ -8,9 +9,10 @@ export async function syncOfferingTitles() {
   if (typeof window === "undefined") return;
 
   try {
-    const res = await fetch("/api/titles");
-    if (res.ok) {
-      const db = await res.json();
+    const { data: db, error } = await supabase.from('offering_titles').select('*');
+    if (error) throw error;
+    
+    if (db) {
       const registryStr = localStorage.getItem("offering_titles_registry");
       let registry: Record<string, string> = {};
       if (registryStr) {
@@ -20,7 +22,9 @@ export async function syncOfferingTitles() {
       }
 
       let updated = false;
-      for (const [address, title] of Object.entries(db)) {
+      for (const row of db) {
+        const address = row.address;
+        const title = row.title;
         if (typeof title === "string" && registry[address] !== title) {
           registry[address] = title;
           updated = true;
@@ -37,24 +41,18 @@ export async function syncOfferingTitles() {
         localStorage.setItem("offering_titles_registry", JSON.stringify(registry));
       }
 
-      // 3. Retro-sync: upload any local titles that the server is missing (e.g. from before the API existed)
+      // 3. Retro-sync: upload any local titles that the server is missing
       let retroSynced = false;
       for (const [address, title] of Object.entries(registry)) {
-        if (!db[address]) {
-          fetch("/api/titles", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ address, title }),
-          }).catch(err => console.error("Retro-sync failed:", err));
+        if (!db.find(r => r.address === address)) {
+          supabase.from('offering_titles').insert([{ address, title }])
+            .then(({ error }) => { if (error) console.error("Retro-sync failed:", error); });
           retroSynced = true;
         }
       }
-      
-      // If we did a retro-sync, force a re-fetch in a moment so other tabs can get it
-      // though typically this tab is the source of truth for these missing ones.
     }
   } catch (error) {
-    console.error("Failed to sync offering titles from server:", error);
+    console.error("Failed to sync offering titles from Supabase:", error);
   }
 }
 
@@ -123,12 +121,12 @@ export function saveOfferingTitle(auctionAddress: string, title: string): void {
         })
       );
 
-      // Async post to server so it persists across different browsers
-      fetch("/api/titles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: cleanAddr, title: cleanTitle }),
-      }).catch(err => console.error("Failed to sync title to server:", err));
+      // Async post to Supabase so it persists across different browsers/devices
+      supabase.from('offering_titles')
+        .upsert([{ address: cleanAddr, title: cleanTitle }], { onConflict: 'address' })
+        .then(({ error }) => {
+          if (error) console.error("Failed to sync title to Supabase:", error);
+        });
 
     } catch (e) {
       console.error("Error saving offering title:", e);

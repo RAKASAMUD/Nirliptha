@@ -363,8 +363,15 @@ contract Auction is ReentrancyGuard {
     function abandonEscrow() external onlyIssuer onlyAwaitingEscrow nonReentrant {
         status = AuctionTypes.Status.Settled;
         euint256 balance = cAsset.confidentialBalanceOf(address(this));
-        Nox.allowThis(balance);
-        cAsset.confidentialTransfer(safe, balance);
+        
+        // If the issuer abandoned at Step 1 (before escrowing any cAsset),
+        // the balance handle will be uninitialized. ERC7984 reverts on transfer
+        // of an uninitialized handle, so we must check first.
+        if (Nox.isInitialized(balance)) {
+            Nox.allowThis(balance);
+            cAsset.confidentialTransfer(safe, balance);
+        }
+        
         emit WithdrawnToSafe(safe);
     }
 

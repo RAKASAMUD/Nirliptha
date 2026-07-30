@@ -273,6 +273,7 @@ export function IssuerDashboard({ auctionAddress }: Props) {
       <section className="mb-6">
         <AuctionInfoCard
           auction={auction}
+          auctionAddress={auctionAddress}
           isIssuer={isIssuer}
           layout="issuer"
           action={

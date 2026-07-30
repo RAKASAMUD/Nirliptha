@@ -123,6 +123,7 @@ export function useBid(auctionAddress: `0x${string}`) {
           abi: CUSD_ABI,
           functionName: "setOperator",
           args: [auctionAddress, Number(deadline)],
+          gas: BigInt(200_000),
         });
         await publicClient.waitForTransactionReceipt({ hash: approveTx });
       }
@@ -137,6 +138,7 @@ export function useBid(auctionAddress: `0x${string}`) {
         abi: AUCTION_ABI,
         functionName: "submitBid",
         args: [qH, qP, pH, pP],
+        gas: BigInt(3_000_000),
       });
       await publicClient.waitForTransactionReceipt({ hash: submitTx });
       refetch();
@@ -150,6 +152,7 @@ export function useBid(auctionAddress: `0x${string}`) {
       address: auctionAddress,
       abi: AUCTION_ABI,
       functionName: "claim",
+      gas: BigInt(3_000_000),
     });
     await publicClient.waitForTransactionReceipt({ hash });
     refetch();

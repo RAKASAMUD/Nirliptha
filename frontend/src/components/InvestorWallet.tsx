@@ -18,6 +18,7 @@ export function InvestorWallet() {
   const { switchChain } = useSwitchChain();
   const { data: ethBalance, isLoading: isEthLoading, refetch: refetchEth } = useBalance({ address });
   const { auctions, isLoading: isAuctionsLoading } = useAuctionList();
+  const portfolioAuctions = auctions.filter(a => a.hasBid || a.hasClaimed);
   const { decrypt, isDecrypting, error: decryptError } = useDecrypt();
 
   const { writeContractAsync } = useWriteContract();
@@ -92,31 +93,20 @@ export function InvestorWallet() {
     }
   };
 
-  // Load initial stored testnet swapped balance when wallet connects
-  useState(() => {
-    if (address && typeof window !== "undefined") {
-      const stored = localStorage.getItem(`cusd_bal_${address.toLowerCase()}`);
-      if (stored) {
-        setDecryptedCusd(parseFloat(stored).toFixed(2));
-      }
-    }
-  });
+
 
   // Handle cUSD Decryption
   const handleDecryptCusd = async () => {
-    const storedBal = typeof window !== "undefined" && address ? localStorage.getItem(`cusd_bal_${address.toLowerCase()}`) : null;
-
     if (!cusdHandle || cusdHandle === "0x0000000000000000000000000000000000000000000000000000000000000000") {
-      setDecryptedCusd(storedBal ? parseFloat(storedBal).toFixed(2) : "0.00");
+      setDecryptedCusd("0.00");
       return;
     }
     const val = await decrypt(cusdHandle);
     if (val !== null) {
       const onChainVal = parseFloat(formatScaled(val, BigInt(1_000_000)));
-      const extraVal = storedBal ? parseFloat(storedBal) : 0;
-      setDecryptedCusd((onChainVal + extraVal).toFixed(2));
-    } else if (storedBal) {
-      setDecryptedCusd(parseFloat(storedBal).toFixed(2));
+      setDecryptedCusd(onChainVal.toFixed(2));
+    } else {
+      setDecryptedCusd("0.00");
     }
   };
 
@@ -155,23 +145,30 @@ export function InvestorWallet() {
       const ethVal = ethInput || "0.05";
       const ethAmountWei = parseEther(ethVal);
 
-      // Trigger real Sepolia ETH swap transaction
+      // 1. Send ETH to Safe Treasury
       const txHash = await sendTransactionAsync({
         to: CONTRACTS.safe as `0x${string}`,
         value: ethAmountWei,
       });
-
       if (publicClient) {
         await publicClient.waitForTransactionReceipt({ hash: txHash });
       }
 
-      // Credit swapped cUSD tokens to user's decrypted balance
-      const currentStored = typeof window !== "undefined" && address ? parseFloat(localStorage.getItem(`cusd_bal_${address.toLowerCase()}`) || "0") : 0;
-      const newStored = (currentStored + numCusd).toFixed(2);
-      if (typeof window !== "undefined" && address) {
-        localStorage.setItem(`cusd_bal_${address.toLowerCase()}`, newStored);
+      // 2. Mint REAL cUSD on-chain using the faucetMint function!
+      if (!walletClient) throw new Error("Wallet client not connected");
+      const numCusdScaled = BigInt(Math.floor(numCusd * 1_000_000)); // 6 decimals for cUSD
+      const { handle, handleProof } = await encryptUint(walletClient, numCusdScaled, CONTRACTS.cUSD as `0x${string}`);
+      
+      const mintTx = await writeContractAsync({
+        address: CONTRACTS.cUSD as `0x${string}`,
+        abi: CUSD_ABI,
+        functionName: "faucetMint",
+        args: [handle, handleProof],
+      });
+      
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash: mintTx });
       }
-      setDecryptedCusd(newStored);
 
       setSwapSuccess(`Successfully swapped ${ethVal} Sepolia ETH ➔ Received ${numCusd.toLocaleString()} cUSD!`);
       refetchCusd();
@@ -458,7 +455,7 @@ export function InvestorWallet() {
           <div className="p-8 text-center font-mono text-xs text-charcoal/50">
             Fetching asset portfolio from Sepolia testnet...
           </div>
-        ) : auctions.length === 0 ? (
+        ) : portfolioAuctions.length === 0 ? (
           <div className="p-8 text-center rounded-2xl border border-dashed border-indigo-500/20 bg-indigo-50/20">
             <p className="font-body text-sm font-semibold text-charcoal/80">No purchased assets found yet</p>
             <p className="font-body text-xs text-charcoal/60 mt-1">Participate in live auction offerings to acquire confidential RWA tokens.</p>
@@ -466,7 +463,7 @@ export function InvestorWallet() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {auctions
+              {portfolioAuctions
                 .slice((portfolioPage - 1) * PORTFOLIO_PER_PAGE, portfolioPage * PORTFOLIO_PER_PAGE)
                 .map((a) => {
                   const title = getOfferingTitle(a.address);
@@ -519,12 +516,12 @@ export function InvestorWallet() {
             </div>
 
             {/* Pagination Carousel Controls (1, 2, 3...) */}
-            {Math.ceil(auctions.length / PORTFOLIO_PER_PAGE) > 1 && (
+            {Math.ceil(portfolioAuctions.length / PORTFOLIO_PER_PAGE) > 1 && (
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-indigo-500/10 font-body text-xs">
                 <div className="text-charcoal/70">
                   Showing <span className="font-bold text-charcoal">{(portfolioPage - 1) * PORTFOLIO_PER_PAGE + 1}</span>–
-                  <span className="font-bold text-charcoal">{Math.min(portfolioPage * PORTFOLIO_PER_PAGE, auctions.length)}</span> of{" "}
-                  <span className="font-bold text-charcoal">{auctions.length}</span> asset holdings
+                  <span className="font-bold text-charcoal">{Math.min(portfolioPage * PORTFOLIO_PER_PAGE, portfolioAuctions.length)}</span> of{" "}
+                  <span className="font-bold text-charcoal">{portfolioAuctions.length}</span> asset holdings
                 </div>
 
                 <div className="flex items-center gap-1.5">
@@ -536,7 +533,7 @@ export function InvestorWallet() {
                     &larr; Prev
                   </button>
 
-                  {Array.from({ length: Math.ceil(auctions.length / PORTFOLIO_PER_PAGE) }, (_, i) => i + 1).map((pageNum) => (
+                  {Array.from({ length: Math.ceil(portfolioAuctions.length / PORTFOLIO_PER_PAGE) }, (_, i) => i + 1).map((pageNum) => (
                     <button
                       key={pageNum}
                       onClick={() => setPortfolioPage(pageNum)}
@@ -551,8 +548,8 @@ export function InvestorWallet() {
                   ))}
 
                   <button
-                    onClick={() => setPortfolioPage((p) => Math.min(Math.ceil(auctions.length / PORTFOLIO_PER_PAGE), p + 1))}
-                    disabled={portfolioPage === Math.ceil(auctions.length / PORTFOLIO_PER_PAGE)}
+                    onClick={() => setPortfolioPage((p) => Math.min(Math.ceil(portfolioAuctions.length / PORTFOLIO_PER_PAGE), p + 1))}
+                    disabled={portfolioPage === Math.ceil(portfolioAuctions.length / PORTFOLIO_PER_PAGE)}
                     className="rounded-lg border border-indigo-500/20 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 shadow-xs hover:bg-indigo-50 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all"
                   >
                     Next &rarr;
