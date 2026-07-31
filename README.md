@@ -110,7 +110,7 @@ Nox infrastructure such as the Handle Gateway, KMS, Runner, and confidential exe
 
 ```bash
 git clone https://github.com/RAKASAMUD/nirliptha.git
-cd nirliptha/contracts
+cd nirliptha/smart-contracts
 npm install
 ```
 
