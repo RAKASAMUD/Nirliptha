@@ -484,8 +484,6 @@ export function InvestorWallet() {
                   <PortfolioItem key={a.address} a={a} />
                 ))}
             </div>
- 
-            </div>
 
             {/* Pagination Carousel Controls (1, 2, 3...) */}
             {Math.ceil(portfolioAuctions.length / PORTFOLIO_PER_PAGE) > 1 && (
