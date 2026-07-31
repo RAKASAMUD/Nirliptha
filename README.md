@@ -21,48 +21,32 @@ Unlike traditional on-chain auctions, confidentiality doesn't end when bidding c
 
 ## How It Works
 
-```text
-Issuer creates an auction
-(quantity, reserve price, deadline)
+```mermaid
+flowchart TD
 
-            │
-            ▼
+    A[Issuer creates an auction<br/>Quantity • Reserve Price • Deadline]
+    --> B[Investors submit encrypted bids<br/>Quantity + Maximum Price]
 
-Investors submit encrypted bids
-(quantity + maximum price)
+    B --> C[Auction closes]
 
-            │
-            ▼
+    C --> D[Nox TEE computes settlement]
 
-Auction closes
+    D --> D1[Winning bidders]
+    D --> D2[Token allocations]
+    D --> D3[Uniform clearing price]
 
-            │
-            ▼
+    D1 --> E[Settlement]
+    D2 --> E
+    D3 --> E
 
-Nox TEE computes
-• winning bidders
-• allocations
-• clearing price
+    E --> F[Winners receive cAsset]
+    E --> G[Others receive refunds]
+    E --> H[Issuer withdraws proceeds to Safe]
 
-            │
-            ▼
-
-Settlement
-
-• Winners receive cAsset
-• Non-winning bidders receive refunds
-
-            │
-            ▼
-
-Issuer withdraws proceeds to Safe
-
-            │
-            ▼
-
-Ownership remains confidential
+    F --> I[Ownership remains confidential]
+    G --> I
+    H --> I
 ```
-
 ---
 
 ## Why Nirlipta?
