@@ -4,55 +4,55 @@ import { supabase } from "./supabase";
 // Fallback generic title if the title cannot be found in local storage or API
 const DEFAULT_TITLE = "Private Asset Offering";
 
-// Synchronize titles from the server/API to the local registry
+// Synchronize titles from Supabase to the local registry
 export async function syncOfferingTitles() {
   if (typeof window === "undefined") return;
 
   try {
-    const { data: db, error } = await supabase.from('offering_titles').select('*');
-    if (error) throw error;
-    
-    if (db) {
-      const registryStr = localStorage.getItem("offering_titles_registry");
-      let registry: Record<string, string> = {};
-      if (registryStr) {
-        try {
-          registry = JSON.parse(registryStr);
-        } catch (_) {}
-      }
+    const { data: dbData, error } = await supabase.from("offering_titles").select("address, title");
+    if (error) {
+      console.error("Failed to fetch offering titles from Supabase:", error);
+      return;
+    }
 
-      let updated = false;
-      for (const row of db) {
-        const address = row.address;
-        const title = row.title;
-        if (typeof title === "string" && registry[address] !== title) {
-          registry[address] = title;
-          updated = true;
-          // Dispatch event for each updated title so UI updates reactively
-          window.dispatchEvent(
-            new CustomEvent("offeringTitleUpdated", {
-              detail: { address, title },
-            })
-          );
-        }
-      }
+    const registryStr = localStorage.getItem("offering_titles_registry");
+    let registry: Record<string, string> = {};
+    if (registryStr) {
+      try {
+        registry = JSON.parse(registryStr);
+      } catch (_) {}
+    }
 
-      if (updated) {
-        localStorage.setItem("offering_titles_registry", JSON.stringify(registry));
+    let updated = false;
+    for (const row of (dbData || [])) {
+      const address = row.address.toLowerCase();
+      const title = row.title;
+      if (typeof title === "string" && registry[address] !== title) {
+        registry[address] = title;
+        updated = true;
+        // Dispatch event for each updated title so UI updates reactively
+        window.dispatchEvent(
+          new CustomEvent("offeringTitleUpdated", {
+            detail: { address, title },
+          })
+        );
       }
+    }
 
-      // 3. Retro-sync: upload any local titles that the server is missing
-      let retroSynced = false;
-      for (const [address, title] of Object.entries(registry)) {
-        if (!db.find(r => r.address === address)) {
-          supabase.from('offering_titles').insert([{ address, title }])
-            .then(({ error }) => { if (error) console.error("Retro-sync failed:", error); });
-          retroSynced = true;
-        }
+    if (updated) {
+      localStorage.setItem("offering_titles_registry", JSON.stringify(registry));
+    }
+
+    // Retro-sync: upload any local titles that Supabase is missing
+    let retroSynced = false;
+    for (const [address, title] of Object.entries(registry)) {
+      if (!dbData?.some((r) => r.address.toLowerCase() === address.toLowerCase())) {
+        await supabase.from("offering_titles").upsert({ address: address.toLowerCase(), title });
+        retroSynced = true;
       }
     }
   } catch (error) {
-    console.error("Failed to sync offering titles from Supabase:", error);
+    console.error("Failed to sync offering titles from server:", error);
   }
 }
 
