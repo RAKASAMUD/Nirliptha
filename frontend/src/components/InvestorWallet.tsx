@@ -97,11 +97,14 @@ export function InvestorWallet() {
 
   // Handle cUSD Decryption
   const handleDecryptCusd = async () => {
-    if (!cusdHandle || cusdHandle === "0x0000000000000000000000000000000000000000000000000000000000000000") {
+    const res = await refetchCusd();
+    const freshHandle = res.data?.[0]?.result as `0x${string}` | undefined;
+    
+    if (!freshHandle || freshHandle === "0x0000000000000000000000000000000000000000000000000000000000000000") {
       setDecryptedCusd("0.00");
       return;
     }
-    const val = await decrypt(cusdHandle);
+    const val = await decrypt(freshHandle);
     if (val !== null) {
       const onChainVal = parseFloat(formatScaled(val, BigInt(1_000_000)));
       setDecryptedCusd(onChainVal.toFixed(2));
@@ -112,11 +115,14 @@ export function InvestorWallet() {
 
   // Handle cAsset Decryption
   const handleDecryptCasset = async () => {
-    if (!cassetHandle || cassetHandle === "0x0000000000000000000000000000000000000000000000000000000000000000") {
+    const res = await refetchCasset();
+    const freshHandle = res.data?.[0]?.result as `0x${string}` | undefined;
+
+    if (!freshHandle || freshHandle === "0x0000000000000000000000000000000000000000000000000000000000000000") {
       setDecryptedCasset("0");
       return;
     }
-    const val = await decrypt(cassetHandle);
+    const val = await decrypt(freshHandle);
     if (val !== null) {
       setDecryptedCasset(val.toLocaleString("en-US"));
     } else {
