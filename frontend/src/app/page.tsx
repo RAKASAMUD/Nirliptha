@@ -2,6 +2,7 @@ import { Hero } from "@/components/Hero";
 import { TechLoop } from "@/components/TechLoop";
 import { WhySection } from "@/components/WhySection";
 import { HowItWorks } from "@/components/HowItWorks";
+import { FAQSection } from "@/components/FAQSection";
 import { CTASection } from "@/components/CTASection";
 import { Footer } from "@/components/Footer";
 
@@ -20,6 +21,7 @@ export default function Home() {
       <WhySection />
       <HowItWorks />
       <CTASection />
+      <FAQSection />
       <Footer />
     </>
   );
