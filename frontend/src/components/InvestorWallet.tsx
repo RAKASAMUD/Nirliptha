@@ -10,7 +10,7 @@ import { formatScaled, shortAddress } from "@/lib/format";
 import { useAuctionList } from "@/hooks/useAuctionList";
 import { useDecrypt } from "@/hooks/useDecrypt";
 import { encryptUint } from "@/lib/nox";
-import { getOfferingTitle } from "@/lib/offeringTitles";
+import { useOfferingTitle } from "@/lib/offeringTitles";
 
 export function InvestorWallet() {
   const { address, isConnected, chain } = useAccount();
@@ -480,54 +480,11 @@ export function InvestorWallet() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {portfolioAuctions
                 .slice((portfolioPage - 1) * PORTFOLIO_PER_PAGE, portfolioPage * PORTFOLIO_PER_PAGE)
-                .map((a) => {
-                  const title = getOfferingTitle(a.address);
-                  return (
-                    <div
-                      key={a.address}
-                      className="rounded-2xl border border-indigo-500/15 bg-gradient-to-br from-white to-indigo-50/30 p-5 flex flex-col justify-between shadow-xs"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-0.5 text-[11px] font-bold text-emerald-700">
-                            ✓ Claimed &amp; Holding
-                          </span>
-                          <span className="font-mono text-[11px] text-charcoal/50">
-                            #{shortAddress(a.address)}
-                          </span>
-                        </div>
-
-                        <h3 className="font-display text-xl text-charcoal font-bold mb-3">
-                          {title}
-                        </h3>
-
-                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-indigo-500/10">
-                          <div>
-                            <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
-                              Holding Amount
-                            </span>
-                            <span className="font-display text-lg text-indigo-700 font-bold">
-                              {a.quantity.toLocaleString("en-US")} <span className="font-sans text-xs font-normal text-charcoal/60">cASSET</span>
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
-                              Acquisition Price
-                            </span>
-                            <span className="font-display text-lg text-oxblood font-bold">
-                              {formatScaled(a.reservePrice, a.scale)} <span className="font-sans text-xs font-normal text-charcoal/60">cUSD</span>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 pt-3 border-t border-indigo-500/10 flex items-center justify-between text-[11px] text-charcoal/60 font-medium">
-                        <span>Token: <strong className="text-indigo-700">ERC7984 Confidential</strong></span>
-                        <span className="text-emerald-700 font-bold">Encrypted Balance ✓</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                .map((a) => (
+                  <PortfolioItem key={a.address} a={a} />
+                ))}
+            </div>
+ 
             </div>
 
             {/* Pagination Carousel Controls (1, 2, 3...) */}
@@ -575,7 +532,55 @@ export function InvestorWallet() {
           </>
         )}
       </div>
+    </div>
+  );
+}
 
+function PortfolioItem({ a }: { a: any }) {
+  const title = useOfferingTitle(a.address);
+  return (
+    <div
+      key={a.address}
+      className="rounded-2xl border border-indigo-500/15 bg-gradient-to-br from-white to-indigo-50/30 p-5 flex flex-col justify-between shadow-xs"
+    >
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <span className="rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-0.5 text-[11px] font-bold text-emerald-700">
+            ✓ Claimed &amp; Holding
+          </span>
+          <span className="font-mono text-[11px] text-charcoal/50">
+            #{shortAddress(a.address)}
+          </span>
+        </div>
+
+        <h3 className="font-display text-xl text-charcoal font-bold mb-3">
+          {title}
+        </h3>
+
+        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-indigo-500/10">
+          <div>
+            <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
+              Holding Amount
+            </span>
+            <span className="font-display text-lg text-indigo-700 font-bold">
+              {a.quantity.toLocaleString("en-US")} <span className="font-sans text-xs font-normal text-charcoal/60">cASSET</span>
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider block mb-0.5">
+              Acquisition Price
+            </span>
+            <span className="font-display text-lg text-oxblood font-bold">
+              {formatScaled(a.reservePrice, a.scale)} <span className="font-sans text-xs font-normal text-charcoal/60">cUSD</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-indigo-500/10 flex items-center justify-between text-[11px] text-charcoal/60 font-medium">
+        <span>Token: <strong className="text-indigo-700">ERC7984 Confidential</strong></span>
+        <span className="text-emerald-700 font-bold">Encrypted Balance ✓</span>
+      </div>
     </div>
   );
 }

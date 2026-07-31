@@ -1,6 +1,6 @@
 "use client";
+import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
-
 // Fallback generic title if the title cannot be found in local storage or API
 const DEFAULT_TITLE = "Private Asset Offering";
 
@@ -133,3 +133,27 @@ export function saveOfferingTitle(auctionAddress: string, title: string): void {
     }
   }
 }
+
+export function useOfferingTitle(auctionAddress?: string): string {
+  const [title, setTitle] = useState<string>(getOfferingTitle(auctionAddress));
+
+  useEffect(() => {
+    if (!auctionAddress) return;
+    
+    // Check initial again on mount in case it was updated right before mount
+    setTitle(getOfferingTitle(auctionAddress));
+    
+    const handleUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ address: string; title: string }>;
+      if (customEvent.detail.address.toLowerCase() === auctionAddress.toLowerCase()) {
+        setTitle(customEvent.detail.title);
+      }
+    };
+    
+    window.addEventListener("offeringTitleUpdated", handleUpdate);
+    return () => window.removeEventListener("offeringTitleUpdated", handleUpdate);
+  }, [auctionAddress]);
+
+  return title;
+}
+
